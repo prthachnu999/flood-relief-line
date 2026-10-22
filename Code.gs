@@ -758,49 +758,71 @@ function getDashboardOverview() {
   }
 
   const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
-  const totalApprovedBudgetThb = sumApprovedBudget(assessmentSheet);
-  const registrationItems = readAllRegistrations(regSheet);
+  const disbursementSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_disbursements.sheetName);
+  const approvedAmountsByReq = buildApprovedAmountMap(assessmentSheet);
+  const registrationItems = readAllRegistrations(regSheet, approvedAmountsByReq);
+  const disbursementItems = readAllDisbursements(disbursementSheet);
 
-  let redCount = 0;
-  let pendingCount = 0;
-  let approvedCount = 0;
-
-  for (let idx = 0; idx < registrationItems.length; idx++) {
-    const record = registrationItems[idx];
-    if (record.priorityTier === PRIORITY_TIERS_TH.RED) {
-      redCount++;
-    }
-    if (record.claimStatus === CLAIM_STATUS_TH.PENDING) {
-      pendingCount++;
-    }
-    if (record.claimStatus === CLAIM_STATUS_TH.APPROVED || record.claimStatus === CLAIM_STATUS_TH.PAID) {
-      approvedCount++;
-    }
-  }
+  const summaryCounts = computeSummaryMetrics(registrationItems, approvedAmountsByReq, disbursementItems);
 
   return {
     totalRequests: registrationItems.length,
-    redCount: redCount,
-    pendingCount: pendingCount,
-    approvedCount: approvedCount,
-    totalApprovedBudgetThb: totalApprovedBudgetThb,
-    registrations: registrationItems
+    redCount: summaryCounts.redCount,
+    pendingCount: summaryCounts.pendingCount,
+    approvedCount: summaryCounts.approvedCount,
+    paidCount: summaryCounts.paidCount,
+    totalApprovedBudgetThb: summaryCounts.totalApprovedBudgetThb,
+    totalPaidBudgetThb: summaryCounts.totalPaidBudgetThb,
+    registrations: registrationItems,
+    disbursements: disbursementItems
   };
 }
 
-function sumApprovedBudget(assessmentSheet) {
-  if (!assessmentSheet || assessmentSheet.getLastRow() <= 1) {
-    return 0;
+function computeSummaryMetrics(registrationItems, approvedAmountsByReq, disbursementItems) {
+  let redCount = 0;
+  let pendingCount = 0;
+  let approvedCount = 0;
+  let paidCount = 0;
+  let totalApprovedBudgetThb = 0;
+  let totalPaidBudgetThb = 0;
+
+  for (let idx = 0; idx < registrationItems.length; idx++) {
+    const record = registrationItems[idx];
+    if (record.priorityTier === PRIORITY_TIERS_TH.RED) redCount++;
+    if (record.claimStatus === CLAIM_STATUS_TH.PENDING) pendingCount++;
+    if (record.claimStatus === CLAIM_STATUS_TH.APPROVED) approvedCount++;
+    if (record.claimStatus === CLAIM_STATUS_TH.PAID) paidCount++;
+    totalApprovedBudgetThb += Number(approvedAmountsByReq[record.requestId]) || 0;
   }
-  const budgetCells = assessmentSheet.getRange(2, 5, assessmentSheet.getLastRow() - 1, 1).getValues();
-  let totalThb = 0;
-  for (let idx = 0; idx < budgetCells.length; idx++) {
-    totalThb += Number(budgetCells[idx][0]) || 0;
+
+  for (let dIdx = 0; dIdx < disbursementItems.length; dIdx++) {
+    totalPaidBudgetThb += Number(disbursementItems[dIdx].disbursedAmountThb) || 0;
   }
-  return totalThb;
+
+  return {
+    redCount: redCount,
+    pendingCount: pendingCount,
+    approvedCount: approvedCount,
+    paidCount: paidCount,
+    totalApprovedBudgetThb: totalApprovedBudgetThb,
+    totalPaidBudgetThb: totalPaidBudgetThb
+  };
 }
 
-function readAllRegistrations(regSheet) {
+function buildApprovedAmountMap(assessmentSheet) {
+  const amountMap = {};
+  if (!assessmentSheet || assessmentSheet.getLastRow() <= 1) {
+    return amountMap;
+  }
+  const assessmentRows = assessmentSheet.getRange(2, 1, assessmentSheet.getLastRow() - 1, 6).getValues();
+  for (let idx = 0; idx < assessmentRows.length; idx++) {
+    const reqId = String(assessmentRows[idx][1]).trim();
+    amountMap[reqId] = Number(assessmentRows[idx][4]) || 0;
+  }
+  return amountMap;
+}
+
+function readAllRegistrations(regSheet, approvedAmountsByReq) {
   const lastRow = regSheet.getLastRow();
   if (lastRow <= 1) {
     return [];
@@ -811,8 +833,9 @@ function readAllRegistrations(regSheet) {
 
   for (let idx = 0; idx < rawRows.length; idx++) {
     const rowCells = rawRows[idx];
+    const reqId = String(rowCells[0]);
     mappedRecords.push({
-      requestId: String(rowCells[0]),
+      requestId: reqId,
       createdAt: String(rowCells[1]),
       citizenId: String(rowCells[2]),
       fullname: String(rowCells[3]),
@@ -827,7 +850,8 @@ function readAllRegistrations(regSheet) {
       gpsLng: String(rowCells[17]),
       priorityScore: Number(rowCells[21]) || 0,
       priorityTier: String(rowCells[22]),
-      claimStatus: String(rowCells[23])
+      claimStatus: String(rowCells[23]),
+      approvedRemedyThb: (approvedAmountsByReq && approvedAmountsByReq[reqId]) ? approvedAmountsByReq[reqId] : 0
     });
   }
 
@@ -836,6 +860,114 @@ function readAllRegistrations(regSheet) {
   });
 
   return mappedRecords;
+}
+
+function readAllDisbursements(disbursementSheet) {
+  if (!disbursementSheet || disbursementSheet.getLastRow() <= 1) {
+    return [];
+  }
+  const rawRows = disbursementSheet.getRange(2, 1, disbursementSheet.getLastRow() - 1, 8).getValues();
+  const list = [];
+  for (let idx = 0; idx < rawRows.length; idx++) {
+    const rowCells = rawRows[idx];
+    list.push({
+      disbursementId: String(rowCells[0]),
+      requestId: String(rowCells[1]),
+      batchNumber: String(rowCells[2]),
+      paymentChannel: String(rowCells[3]),
+      transactionRef: String(rowCells[4]),
+      disbursedAmountThb: Number(rowCells[5]) || 0,
+      disbursedAt: String(rowCells[6]),
+      financeOfficerId: String(rowCells[7])
+    });
+  }
+  return list.reverse();
+}
+
+function recordDisbursementPayment(paymentInput) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
+  const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
+  const disburseSchema = TABLE_SCHEMAS.tbl_disbursements;
+  const disburseSheet = spreadsheet.getSheetByName(disburseSchema.sheetName);
+
+  const matchedRowIndex = findRegistrationRowIndexById(regSheet, paymentInput.requestId);
+  if (matchedRowIndex === -1) {
+    throw new Error('ไม่พบรหัสคำร้อง: ' + paymentInput.requestId);
+  }
+
+  const approvedAmountsByReq = buildApprovedAmountMap(assessmentSheet);
+  const approvedThb = approvedAmountsByReq[paymentInput.requestId] || Number(paymentInput.disbursedAmountThb) || 0;
+  if (approvedThb <= 0) {
+    throw new Error('คำร้องนี้ยังไม่มีวงเงินอนุมัติเยียวยา');
+  }
+
+  const disbursementId = generateNextSequentialId(disburseSheet, 'PAY');
+  const paidTime = formatThaiTimestamp();
+  const batchCode = paymentInput.batchNumber || ('BATCH-' + Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyyMMdd'));
+  const txRef = paymentInput.transactionRef || ('KTB-' + new Date().getTime());
+
+  const disburseRow = [
+    disbursementId,
+    paymentInput.requestId,
+    batchCode,
+    paymentInput.paymentChannel || 'พร้อมเพย์ ธ.กรุงไทย (KTB)',
+    txRef,
+    approvedThb,
+    paidTime,
+    paymentInput.financeOfficerId || 'กง-ปภ-01'
+  ];
+
+  writeFormattedSheetRow(disburseSheet, disburseRow, disburseSchema.textFormatColumnIndices);
+
+  const statusCell = regSheet.getRange(matchedRowIndex, 24);
+  const previousStatus = statusCell.getValue();
+  statusCell.setValue(CLAIM_STATUS_TH.PAID);
+
+  appendAuditLogEntry(
+    spreadsheet,
+    paymentInput.requestId,
+    'โอนเงินเยียวยาสำเร็จ',
+    paymentInput.financeOfficerId || 'เจ้าหน้าที่การเงิน',
+    previousStatus,
+    CLAIM_STATUS_TH.PAID
+  );
+
+  return {
+    disbursementId: disbursementId,
+    requestId: paymentInput.requestId,
+    disbursedAmountThb: approvedThb,
+    claimStatus: CLAIM_STATUS_TH.PAID
+  };
+}
+
+function generatePromptPayBatchCsv() {
+  const overview = getDashboardOverview();
+  const csvLines = ['ลำดับ,รหัสคำร้อง,เลขบัตรประชาชน,ชื่อ-นามสกุล,เลขพร้อมเพย์,จำนวนเงินเยียวยา(บาท),ตำบล,สถานะ'];
+  let sequenceNo = 1;
+
+  for (let idx = 0; idx < overview.registrations.length; idx++) {
+    const rec = overview.registrations[idx];
+    if (rec.claimStatus === CLAIM_STATUS_TH.APPROVED && rec.approvedRemedyThb > 0) {
+      const rowCsv = [
+        sequenceNo,
+        rec.requestId,
+        '="' + rec.citizenId + '"',
+        '"' + rec.fullname + '"',
+        '="' + rec.promptpayNumber + '"',
+        rec.approvedRemedyThb,
+        '"' + rec.subdistrict + '"',
+        '"' + rec.claimStatus + '"'
+      ].join(',');
+      csvLines.push(rowCsv);
+      sequenceNo++;
+    }
+  }
+
+  return {
+    readyCount: sequenceNo - 1,
+    csvContent: '\uFEFF' + csvLines.join('\r\n')
+  };
 }
 
 function testSeedSampleFloodData() {
