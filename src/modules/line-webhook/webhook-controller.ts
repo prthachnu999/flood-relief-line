@@ -85,17 +85,21 @@ export class LineWebhookController {
       await this.sendLineReply(replyToken, [
         {
           type: 'text',
-          text: `🔍 ระบบตรวจสอบสถานะคำร้องผู้ประสบภัย\n\n📌 ท่านสามารถตรวจสอบสถานะได้ทันที:\n• พิมพ์ "รหัสคำร้อง" (เช่น REQ-2569-00002)\n• หรือพิมพ์ "เลขบัตรประชาชน 13 หลัก"\n\nแล้วส่งข้อความเข้ามาในแชทนี้ได้เลยครับ\n\n🌐 หรือแตะลิงก์เพื่อตรวจสอบผ่านหน้าเว็บ:\n${this.googleAppsScriptUrl}`
+          text: `🔍 ระบบตรวจสอบสถานะคำร้องผู้ประสบภัย\n\n📌 ท่านสามารถตรวจสอบสถานะได้ทันที โดยพิมพ์:\n• "รหัสคำร้อง" (เช่น REQ-2569-00002)\n• หรือ "เลขบัตรประชาชน 13 หลัก"\n• หรือ "เบอร์โทรศัพท์" ที่ใช้ยื่นคำร้อง (เช่น 0812345678)\n\nแล้วส่งข้อความเข้ามาในแชทนี้ได้เลยครับ\n\n🌐 หรือแตะลิงก์เพื่อตรวจสอบผ่านหน้าเว็บ:\n${this.googleAppsScriptUrl}`
         }
       ]);
       return;
     }
 
+    const cleanDigits = userMessageText.replace(/\D/g, '');
     const isRequestId = /^REQ-/i.test(userMessageText) || /^FL-/i.test(userMessageText);
-    const isCitizenId = /^\d{13}$/.test(userMessageText);
+    const isCitizenId = cleanDigits.length === 13;
+    const isPhoneNumber =
+      (cleanDigits.length === 9 || cleanDigits.length === 10) && cleanDigits.startsWith('0');
 
-    if (isRequestId || isCitizenId) {
-      await this.handleStatusQuery(replyToken, userMessageText);
+    if (isRequestId || isCitizenId || isPhoneNumber) {
+      const searchTarget = isRequestId ? userMessageText : cleanDigits;
+      await this.handleStatusQuery(replyToken, searchTarget);
       return;
     }
 
@@ -122,7 +126,7 @@ export class LineWebhookController {
     await this.sendLineReply(replyToken, [
       {
         type: 'text',
-        text: 'ศูนย์ช่วยเหลือเยียวยาผู้ประสบอุทกภัย ยินดีให้บริการครับ\n\nกรุณาเลือกเมนูจากแถบด้านล่าง:\n• ยื่นขอเงินเยียวยา\n• ตรวจสอบสถานะคำร้อง (พิมพ์ REQ-2569-XXXXX หรือเลขบัตร ปชช. 13 หลัก)\n• แจ้งพิกัดน้ำท่วม / ขอถุงยังชีพ\n• สายด่วน 1784'
+        text: 'ศูนย์ช่วยเหลือเยียวยาผู้ประสบอุทกภัย ยินดีให้บริการครับ\n\nกรุณาเลือกเมนูจากแถบด้านล่าง:\n• ยื่นขอเงินเยียวยา\n• ตรวจสอบสถานะคำร้อง (พิมพ์ REQ-..., เลขบัตร ปชช. หรือ เบอร์โทรศัพท์)\n• แจ้งพิกัดน้ำท่วม / ขอถุงยังชีพ\n• สายด่วน 1784'
       }
     ]);
   }
@@ -155,7 +159,7 @@ export class LineWebhookController {
     await this.sendLineReply(replyToken, [
       {
         type: 'text',
-        text: `⚠️ ไม่พบข้อมูลคำร้องหมายเลข "${queryKeyword}" ในระบบ\n\nโปรดตรวจสอบรหัสคำร้อง (เช่น REQ-2569-00002) หรือเลขบัตรประชาชน 13 หลักของผู้ยื่นคำขออีกครั้งครับ\n\n🌐 หรือค้นหาผ่านหน้าเว็บได้ที่:\n${this.googleAppsScriptUrl}`
+        text: `⚠️ ไม่พบข้อมูลคำร้องจาก "${queryKeyword}" ในระบบ\n\nโปรดตรวจสอบรหัสคำร้อง (เช่น REQ-2569-00002), เลขบัตรประชาชน 13 หลัก หรือเบอร์โทรศัพท์ที่ใช้ยื่นคำขออีกครั้งครับ\n\n🌐 หรือค้นหาผ่านหน้าเว็บได้ที่:\n${this.googleAppsScriptUrl}`
       }
     ]);
   }

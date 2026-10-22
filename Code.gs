@@ -844,11 +844,18 @@ function findRegistrationByKeyword(searchKeyword) {
     const rowCells = allRecords[idx];
     const rowRequestId = String(rowCells[0]).trim();
     const rowCitizenId = sanitizeNumericDigits(rowCells[2]);
-    if (rowRequestId === cleanKeyword || (cleanDigits.length === 13 && rowCitizenId === cleanDigits)) {
+    const rowPhone = sanitizeNumericDigits(rowCells[4]);
+
+    const isMatchRequestId = rowRequestId.toLowerCase() === cleanKeyword.toLowerCase();
+    const isMatchCitizenId = cleanDigits.length === 13 && rowCitizenId === cleanDigits;
+    const isMatchPhone = (cleanDigits.length === 9 || cleanDigits.length === 10) && rowPhone === cleanDigits;
+
+    if (isMatchRequestId || isMatchCitizenId || isMatchPhone) {
       matchedRecords.push({
         requestId: rowRequestId,
         createdAt: String(rowCells[1]),
         fullname: String(rowCells[3]),
+        phoneNumber: String(rowCells[4]),
         addressText: 'บ้านเลขที่ ' + rowCells[5] + ' ม.' + rowCells[6] + ' ต.' + rowCells[7] + ' อ.' + rowCells[8],
         subdistrict: String(rowCells[7]),
         waterDepthCm: Number(rowCells[11]) || 0,

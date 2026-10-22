@@ -1074,7 +1074,7 @@
           <span>🔍 ตรวจสอบสถานะคำร้องและผลการโอนเงินเยียวยา</span>
         </div>
         <form onsubmit="handleTrackingFormSubmit(event)" style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <input type="text" id="trackingQueryInput" class="form-control" style="flex: 1;" placeholder="กรอกเลขบัตรประชาชน 13 หลัก หรือ รหัสคำร้อง (เช่น REQ-2569-00001)">
+          <input type="text" id="trackingQueryInput" class="form-control" style="flex: 1;" placeholder="กรอกเลขบัตร ปชช. 13 หลัก, รหัสคำร้อง (เช่น REQ-2569-00001) หรือ เบอร์โทรศัพท์">
           <button type="submit" class="btn-primary">ค้นหาข้อมูล</button>
         </form>
         <div id="trackingResultsContainer" style="margin-top: 20px;"></div>
@@ -2009,7 +2009,7 @@
       const keyword = document.getElementById('trackingQueryInput').value.trim();
       const container = document.getElementById('trackingResultsContainer');
       if (!keyword) {
-        container.innerHTML = '<p style="color: var(--tier-yellow-text); font-weight: 500;">กรุณากรอกเลขบัตรประชาชน 13 หลัก หรือ รหัสคำร้อง</p>';
+        container.innerHTML = '<p style="color: var(--tier-yellow-text); font-weight: 500;">กรุณากรอกเลขบัตรประชาชน 13 หลัก, รหัสคำร้อง หรือเบอร์โทรศัพท์</p>';
         return;
       }
 
@@ -2026,7 +2026,10 @@
       } else {
         const cleanDigits = keyword.replace(/\D/g, '');
         const localMatches = cachedRegistrations.filter(function (item) {
-          return item.requestId === keyword || (cleanDigits.length === 13 && item.citizenId === cleanDigits);
+          const matchReq = item.requestId.toLowerCase() === keyword.toLowerCase();
+          const matchCitizen = cleanDigits.length === 13 && item.citizenId === cleanDigits;
+          const matchPhone = (cleanDigits.length === 9 || cleanDigits.length === 10) && item.phoneNumber === cleanDigits;
+          return matchReq || matchCitizen || matchPhone;
         });
         renderTrackingCards(localMatches);
       }
@@ -2035,7 +2038,7 @@
     function renderTrackingCards(matchedRows) {
       const container = document.getElementById('trackingResultsContainer');
       if (!matchedRows || matchedRows.length === 0) {
-        container.innerHTML = '<p style="color: var(--tier-red-text); font-weight: 500;">ไม่พบข้อมูลคำร้องที่ค้นหา กรุณาตรวจสอบเลขบัตรประชาชนหรือรหัสคำร้องอีกครั้ง</p>';
+        container.innerHTML = '<p style="color: var(--tier-red-text); font-weight: 500;">ไม่พบข้อมูลคำร้องที่ค้นหา กรุณาตรวจสอบเลขบัตรประชาชน, รหัสคำร้อง หรือเบอร์โทรศัพท์อีกครั้ง</p>';
         return;
       }
 

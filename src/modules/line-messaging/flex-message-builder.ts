@@ -4,6 +4,7 @@ export interface LiveSheetClaimRecord {
   requestId: string;
   createdAt: string;
   fullname: string;
+  phoneNumber?: string;
   addressText: string;
   subdistrict: string;
   waterDepthCm: number;
@@ -85,6 +86,18 @@ export class FlexMessageBuilder {
                 { type: 'text', text: sheetRecord.fullname, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
               ]
             },
+            ...(sheetRecord.phoneNumber
+              ? [
+                  {
+                    type: 'box',
+                    layout: 'horizontal',
+                    contents: [
+                      { type: 'text', text: 'เบอร์ติดต่อ', color: '#64748B', size: 'xs', flex: 4 },
+                      { type: 'text', text: sheetRecord.phoneNumber, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
+                    ]
+                  }
+                ]
+              : []),
             {
               type: 'box',
               layout: 'horizontal',
