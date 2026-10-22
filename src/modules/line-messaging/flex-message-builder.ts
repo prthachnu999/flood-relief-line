@@ -260,4 +260,163 @@ export class FlexMessageBuilder {
       }
     };
   }
+
+  public static buildEmergencyHelpFlex(liffAppUrl: string) {
+    return {
+      type: 'flex',
+      altText: '🚨 ศูนย์รับแจ้งเหตุน้ำท่วมและขอความช่วยเหลือด่วน ปภ. 1784',
+      contents: {
+        type: 'bubble',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          backgroundColor: '#DC2626',
+          paddingAll: '16px',
+          contents: [
+            {
+              type: 'text',
+              text: '🚨 ศูนย์ช่วยเหลือฉุกเฉิน 24 ชม.',
+              color: '#FEE2E2',
+              size: 'xs',
+              weight: 'bold'
+            },
+            {
+              type: 'text',
+              text: 'แจ้งเหตุน้ำท่วม / ขอกู้ภัยด่วน',
+              color: '#FFFFFF',
+              size: 'lg',
+              weight: 'bold',
+              margin: 'xs'
+            }
+          ]
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          spacing: 'md',
+          paddingAll: '18px',
+          contents: [
+            {
+              type: 'text',
+              text: 'ระบบได้รับแจ้งเหตุเรียบร้อยแล้ว',
+              weight: 'bold',
+              size: 'md',
+              color: '#0F172A'
+            },
+            {
+              type: 'text',
+              text: 'โปรดแตะปุ่มด้านล่างเพื่อส่งพิกัดดาวเทียม ทีมกู้ภัย ปภ. จะได้รับตำแหน่งที่แม่นยำที่สุด:',
+              wrap: true,
+              size: 'xs',
+              color: '#64748B'
+            },
+            {
+              type: 'button',
+              style: 'primary',
+              color: '#DC2626',
+              height: 'md',
+              action: {
+                type: 'uri',
+                label: '📍 ส่งพิกัด GPS ขอกู้ภัยทันที',
+                uri: liffAppUrl
+              }
+            },
+            {
+              type: 'button',
+              style: 'secondary',
+              height: 'md',
+              color: '#0284C7',
+              action: {
+                type: 'uri',
+                label: '📞 โทรสายด่วนนิรภัย 1784 (ฟรี)',
+                uri: 'tel:1784'
+              }
+            },
+            {
+              type: 'box',
+              layout: 'vertical',
+              backgroundColor: '#F1F5F9',
+              cornerRadius: '8px',
+              paddingAll: '10px',
+              contents: [
+                {
+                  type: 'text',
+                  text: '💡 ทางเลือกเสริม: กดปุ่ม [+] ซ้ายล่างใน LINE แล้วเลือก "ตำแหน่งที่ตั้ง" เพื่อส่งพิกัดเข้าแชทได้ทันที',
+                  wrap: true,
+                  size: 'xxs',
+                  color: '#475569'
+                }
+              ]
+            }
+          ]
+        }
+      }
+    };
+  }
+
+  public static buildHotlineFlex() {
+    return {
+      type: 'flex',
+      altText: '📞 สายด่วนนิรภัย ปภ. 1784 (โทรฟรี 24 ชั่วโมง)',
+      contents: {
+        type: 'bubble',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          backgroundColor: '#0284C7',
+          paddingAll: '16px',
+          contents: [
+            {
+              type: 'text',
+              text: '📞 ศูนย์เตือนภัยและสายด่วน',
+              color: '#E0F2FE',
+              size: 'xs',
+              weight: 'bold'
+            },
+            {
+              type: 'text',
+              text: 'สายด่วนนิรภัย ปภ. 1784',
+              color: '#FFFFFF',
+              size: 'lg',
+              weight: 'bold',
+              margin: 'xs'
+            }
+          ]
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          spacing: 'md',
+          paddingAll: '18px',
+          contents: [
+            {
+              type: 'text',
+              text: 'กรมป้องกันและบรรเทาสาธารณภัย (ปภ.)',
+              weight: 'bold',
+              size: 'sm',
+              color: '#0F172A'
+            },
+            {
+              type: 'text',
+              text: '• โทรฟรีตลอด 24 ชั่วโมง ทั่วประเทศ\n• ศูนย์เตือนภัยพิบัติแห่งชาติ\n• แจ้งเหตุด่วนทาง LINE ปภ.: @1784DDPM',
+              wrap: true,
+              size: 'xs',
+              color: '#64748B'
+            },
+            {
+              type: 'button',
+              style: 'primary',
+              color: '#0284C7',
+              height: 'md',
+              action: {
+                type: 'uri',
+                label: '📞 กดโทรออก 1784 ทันที',
+                uri: 'tel:1784'
+              }
+            }
+          ]
+        }
+      }
+    };
+  }
 }

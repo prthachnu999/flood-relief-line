@@ -1523,3 +1523,45 @@ function testSendLineAlert() {
 function authorizeLineUrlFetch() {
   UrlFetchApp.fetch('https://api.line.me');
 }
+
+// ========================================================
+// KEEPALIVE CRON: ป้องกันเซิร์ฟเวอร์ LINE Bot หลับ (ANTI-SLEEP)
+// ========================================================
+function keepAliveLineWebhookServer() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const webhookHealthUrl = scriptProperties.getProperty('WEBHOOK_HEALTH_URL') || '';
+  if (!webhookHealthUrl) {
+    Logger.log('[KeepAlive] ยังไม่ได้กำหนดค่า WEBHOOK_HEALTH_URL ใน Script Properties');
+    return;
+  }
+
+  try {
+    const response = UrlFetchApp.fetch(webhookHealthUrl, {
+      method: 'get',
+      muteHttpExceptions: true
+    });
+    Logger.log('[KeepAlive] สะกิดปลุกเซิร์ฟเวอร์สำเร็จ: HTTP ' + response.getResponseCode());
+  } catch (err) {
+    Logger.log('[KeepAlive] เกิดข้อผิดพลาดในการปลุกเซิร์ฟเวอร์: ' + err.message);
+  }
+}
+
+function setupKeepAliveTrigger(targetWebhookHealthUrl) {
+  if (targetWebhookHealthUrl) {
+    PropertiesService.getScriptProperties().setProperty('WEBHOOK_HEALTH_URL', targetWebhookHealthUrl);
+  }
+
+  const triggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'keepAliveLineWebhookServer') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+
+  ScriptApp.newTrigger('keepAliveLineWebhookServer')
+    .timeBased()
+    .everyMinutes(5)
+    .create();
+
+  Logger.log('[KeepAlive] ตั้งเวลาสะกิดปลุกเซิร์ฟเวอร์อัตโนมัติทุก 5 นาทีเรียบร้อยแล้ว!');
+}

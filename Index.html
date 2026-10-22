@@ -876,6 +876,195 @@
         text-align: center;
       }
     }
+
+    /* LINE OFFICIAL ACCOUNT WIDGET STYLES (CLEAN & NON-INTRUSIVE) */
+    .line-top-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: hsla(145, 80%, 38%, 0.22);
+      border: 1px solid hsl(145, 75%, 48%);
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.18s ease;
+    }
+    .line-top-pill:hover {
+      background: hsla(145, 90%, 42%, 0.42);
+      transform: translateY(-1px);
+    }
+    .line-dot-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #06C755;
+      box-shadow: 0 0 6px #06C755;
+    }
+
+    .line-floating-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      font-family: 'Prompt', sans-serif;
+    }
+    .line-trigger-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #06C755 0%, #05a044 100%);
+      color: #ffffff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 30px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(6, 199, 85, 0.38);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .line-trigger-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(6, 199, 85, 0.52);
+    }
+    .line-qr-popover {
+      position: absolute;
+      bottom: calc(100% + 12px);
+      right: 0;
+      width: 290px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      animation: lineFlyIn 0.22s ease-out;
+    }
+    .line-qr-popover.open {
+      display: flex;
+    }
+    @keyframes lineFlyIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .line-popover-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .line-badge-icon {
+      background: #06C755;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.72rem;
+      padding: 3px 6px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .line-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .line-close-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+    }
+    .line-qr-frame {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px dashed hsl(145, 50%, 75%);
+    }
+    .line-qr-frame img {
+      width: 170px;
+      height: 170px;
+      display: block;
+      border-radius: 4px;
+      object-fit: contain;
+    }
+    .line-id-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-subtle);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+    }
+    .line-copy-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--hydro-navy);
+      padding: 2px 8px;
+      cursor: pointer;
+    }
+    .line-copy-btn:hover {
+      border-color: #06C755;
+      color: #06C755;
+    }
+    .line-add-friend-btn {
+      display: block;
+      text-align: center;
+      background: #06C755;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.86rem;
+      padding: 9px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .line-add-friend-btn:hover {
+      background: #05a847;
+    }
+
+    .line-notice-strip {
+      background: hsl(145, 60%, 96%);
+      border: 1.5px solid hsl(145, 50%, 80%);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .line-add-btn-mini {
+      background: #06C755;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.15s ease;
+    }
+    .line-add-btn-mini:hover {
+      background: #05a847;
+    }
   </style>
 </head>
 <body>
@@ -885,6 +1074,10 @@
       <span>🏛️ ศูนย์ปฏิบัติการช่วยเหลือเยียวยาผู้ประสบอุทกภัย (องค์กรปกครองส่วนท้องถิ่น / ปภ.)</span>
       <div style="display: flex; align-items: center; gap: 10px;">
         <span class="hotline-pill">📞 สายด่วนนิรภัย 1784</span>
+        <button type="button" class="line-top-pill" onclick="toggleLineQrPopover(true)" title="คลิกเพื่อสแกน QR Code หรือเพิ่มเพื่อน LINE @524nkkpx">
+          <span class="line-dot-pulse"></span>
+          <span>💬 LINE: @524nkkpx</span>
+        </button>
         <button type="button" id="adminLoginTriggerBtn" class="admin-gate-btn" onclick="openAdminLoginModal()">🔐 สำหรับผู้ช่วยเหลือ (แอดมิน)</button>
         <button type="button" id="adminLogoutBtn" class="admin-logout-btn" onclick="logoutAdminPortal()">🚪 ออกจากระบบแอดมิน (กลับหน้าประชาชน)</button>
       </div>
@@ -1031,6 +1224,7 @@
           <div class="section-heading">
             <span>4. แนบภาพถ่ายหลักฐานความเสียหาย (กดที่รูปตัวอย่างเพื่อขยายดูได้)</span>
           </div>
+          <div style="font-size:0.83rem; color:var(--text-secondary); margin-bottom:12px;">💡 แนบภาพถ่ายสภาพความเสียหายจริง เพื่อให้เจ้าหน้าที่ใช้ประกอบการอนุมัติเงินเยียวยาได้รวดเร็วขึ้น</div>
           <div class="grid-2">
             <div class="form-group">
               <label class="form-label">📷 ภาพถ่ายตัวบ้านขณะถูกน้ำท่วมหรือร่องรอยความเสียหาย</label>
@@ -1077,6 +1271,20 @@
           <input type="text" id="trackingQueryInput" class="form-control" style="flex: 1;" placeholder="กรอกเลขบัตร ปชช. 13 หลัก, รหัสคำร้อง (เช่น REQ-2569-00001) หรือ เบอร์โทรศัพท์">
           <button type="submit" class="btn-primary">ค้นหาข้อมูล</button>
         </form>
+
+        <div class="line-notice-strip">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.35rem;">🔔</span>
+            <div>
+              <div style="font-weight: 700; color: #0f172a; font-size: 0.86rem;">รับการแจ้งเตือนผลเยียวยาอัตโนมัติผ่าน LINE</div>
+              <div style="font-size: 0.78rem; color: #64748b;">แอด LINE Official Account <strong>@524nkkpx</strong> เพื่อรับข้อความแจ้งเตือนทันทีเมื่อเงินโอนเข้าบัญชี</div>
+            </div>
+          </div>
+          <button type="button" class="line-add-btn-mini" onclick="toggleLineQrPopover(true)">
+            📲 สแกน QR / เพิ่มเพื่อน @524nkkpx
+          </button>
+        </div>
+
         <div id="trackingResultsContainer" style="margin-top: 20px;"></div>
       </div>
     </section>
@@ -1108,12 +1316,19 @@
         <div class="section-heading">
           <span>📋 ตารางคัดกรองและประเมินความเสียหายภาคสนาม (เฉพาะเจ้าหน้าที่ผู้ช่วยเหลือ)</span>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <input type="text" id="adminSearchInput" class="form-control" style="width: 220px;" placeholder="ค้นหาชื่อ / รหัส / ตำบล..." oninput="renderOfficerTable()">
+            <input type="text" id="adminSearchInput" class="form-control" style="width: 200px;" placeholder="ค้นหาชื่อ / รหัส / ตำบล..." oninput="renderOfficerTable()">
             <select id="tierFilterSelect" class="form-control" style="width: auto;" onchange="handleTierFilterChange()">
               <option value="ALL">แสดงทุกระดับความเร่งด่วน</option>
               <option value="วิกฤตเร่งด่วน (สีแดง)">🔴 เฉพาะกลุ่มวิกฤตเร่งด่วน (สีแดง)</option>
               <option value="ปานกลาง (สีเหลือง)">🟡 เฉพาะกลุ่มปานกลาง (สีเหลือง)</option>
               <option value="ทั่วไป (สีเขียว)">🟢 เฉพาะกลุ่มทั่วไป (สีเขียว)</option>
+            </select>
+            <select id="officerSortSelect" class="form-control" style="width: auto; font-weight: 600; color: var(--hydro-navy);" onchange="renderOfficerTable()" title="เลือกวิธีเรียงลำดับรายการคำร้อง">
+              <option value="TIME_DESC">⏱️ เรียงตามเวลา: ยื่นล่าสุดก่อน</option>
+              <option value="TIME_ASC">⏱️ เรียงตามเวลา: เก่าสุดก่อน (คิวแรก)</option>
+              <option value="PRIORITY_DESC">🚨 เรียงตามความเร่งด่วน (Triage สูงสุด)</option>
+              <option value="WATER_DESC">🌊 เรียงตามระดับน้ำท่วมสูงสุด</option>
+              <option value="REQ_DESC">🔢 เรียงตามรหัสคำร้อง (ใหม่ไปเก่า)</option>
             </select>
             <button type="button" class="btn-secondary" onclick="loadDashboardData()">🔄 รีเฟรชข้อมูล</button>
           </div>
@@ -1149,11 +1364,11 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>รหัสคำร้อง</th>
+                <th style="cursor: pointer; user-select: none;" onclick="toggleColumnSort('TIME')" title="คลิกเพื่อสลับเรียงตามเวลา ยื่นล่าสุด/เก่าสุด">รหัสคำร้อง / วันเวลา <span id="sortIconTime" style="font-size: 0.75rem; color: var(--hydro-blue);">▼</span></th>
                 <th>ผู้ประสบภัย / กลุ่มเปราะบาง</th>
                 <th>ที่อยู่ & พิกัดแผนที่</th>
-                <th>ระดับน้ำ</th>
-                <th>ความเร่งด่วน (Triage)</th>
+                <th style="cursor: pointer; user-select: none;" onclick="toggleColumnSort('WATER')" title="คลิกเพื่อสลับเรียงตามระดับน้ำท่วม">ระดับน้ำ <span id="sortIconWater" style="font-size: 0.75rem; color: var(--text-secondary);">↕️</span></th>
+                <th style="cursor: pointer; user-select: none;" onclick="toggleColumnSort('PRIORITY')" title="คลิกเพื่อสลับเรียงตามความเร่งด่วน">ความเร่งด่วน (Triage) <span id="sortIconPriority" style="font-size: 0.75rem; color: var(--text-secondary);">↕️</span></th>
                 <th>สถานะ / วงเงิน</th>
                 <th>การสำรวจ</th>
               </tr>
@@ -1280,7 +1495,7 @@
     <div class="modal-box">
       <div class="section-heading">
         <span>🛡️ บันทึกผลสำรวจความเสียหายและอนุมัติวงเงิน</span>
-        <button type="button" class="btn-secondary" style="padding:4px 10px; font-size:0.78rem;" onclick="openModalCurrentCaseGallery()">🖼️ ดูภาพความเสียหาย</button>
+        <button type="button" id="modalViewPhotosBtn" class="btn-secondary" style="padding:4px 10px; font-size:0.78rem;" onclick="openModalCurrentCaseGallery()">🖼️ ดูภาพความเสียหาย</button>
       </div>
       <form id="assessmentForm" onsubmit="submitAssessmentModal(event)">
         <input type="hidden" id="modalRequestId">
@@ -1474,9 +1689,46 @@
 
     <div class="lightbox-bottombar">
       <button type="button" id="lbThumbBtn0" class="lb-thumb-btn active" onclick="selectLightboxSlide(0)">📷 1. ภาพสภาพตัวบ้านที่ถูกน้ำท่วม</button>
-      <button type="button" id="lbThumbBtn1" class="lb-thumb-btn" onclick="selectLightboxSlide(1)">🌊 2. ภาพระดับน้ำท่วมขัง / ทรัพย์สินเสียหาย</button>
+      <button type="button" id="lbThumbBtn1" class="lb-thumb-btn" onclick="selectLightboxSlide(1)">🌊 2. ภาพระดับน้ำท่วมขัง / ทฟรัพย์สินเสียหาย</button>
       <span style="font-size: 0.78rem; color: hsl(210, 25%, 72%);">💡 ใช้ลูกกลิ้งเมาส์ซูมเข้า-ออก และคลิกค้างเพื่อลากเลื่อนดูจุดเสียหายได้</span>
     </div>
+  </div>
+
+  <!-- FLOATING LINE OA QUICK BADGE (MINIMAL & NON-INTRUSIVE) -->
+  <div id="lineFloatingWidget" class="line-floating-container">
+    <div id="lineQrPopover" class="line-qr-popover">
+      <div class="line-popover-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="line-badge-icon">LINE</span>
+          <div>
+            <div style="font-weight: 700; font-size: 0.88rem; color: #0f172a;">LINE Official Account</div>
+            <div style="font-size: 0.74rem; color: #64748b;">แจ้งเตือนสถานะเงินเยียวยา & ประสานงาน</div>
+          </div>
+        </div>
+        <button type="button" class="line-close-btn" onclick="toggleLineQrPopover(false)" title="ปิดหน้าต่าง">✕</button>
+      </div>
+
+      <div class="line-popover-body">
+        <div class="line-qr-frame">
+          <img src="data:image/png;base64,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" alt="QR Code LINE @524nkkpx">
+        </div>
+        <div class="line-id-box">
+          <span>LINE ID: <strong>@524nkkpx</strong></span>
+          <button type="button" class="line-copy-btn" onclick="copyLineId(this)">📋 คัดลอก ID</button>
+        </div>
+        <a href="https://line.me/R/ti/p/@524nkkpx" target="_blank" class="line-add-friend-btn">
+          ➕ เพิ่มเพื่อนใน LINE ทันที
+        </a>
+      </div>
+    </div>
+
+    <!-- Capsule Trigger -->
+    <button type="button" id="lineTriggerPill" class="line-trigger-pill" onclick="toggleLineQrPopover()" title="ติดต่อหรือรับแจ้งเตือนผ่าน LINE @524nkkpx">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+        <path d="M12 2C6.48 2 2 5.82 2 10.53c0 2.92 1.76 5.51 4.5 7.02-.2.74-.72 2.7-.82 3.12-.13.53.19.52.4.38.16-.11 2.22-1.52 3.12-2.14.9.26 1.84.4 2.8.4 5.52 0 10-3.82 10-8.53S17.52 2 12 2z"/>
+      </svg>
+      <span>LINE แจ้งเตือน <strong>@524nkkpx</strong></span>
+    </button>
   </div>
 
   <script>
@@ -1485,7 +1737,8 @@
       ADMIN_PASSCODE: 'FLOOD_RELIEF_ADMIN_TOKEN_2569',
       ACTIVE_VIEW: 'FLOOD_RELIEF_ACTIVE_VIEW_2569',
       TIER_FILTER: 'FLOOD_RELIEF_TIER_FILTER_2569',
-      STATUS_FILTER: 'FLOOD_RELIEF_STATUS_FILTER_2569'
+      STATUS_FILTER: 'FLOOD_RELIEF_STATUS_FILTER_2569',
+      OFFICER_SORT: 'FLOOD_RELIEF_OFFICER_SORT_2569'
     };
 
     let activeAdminPasscode = '';
@@ -1732,6 +1985,14 @@
     }
 
     function restorePersistedPortalState() {
+      const savedSort = readStorageValue(STORAGE_KEYS.OFFICER_SORT);
+      if (savedSort) {
+        const sortSelect = document.getElementById('officerSortSelect');
+        if (sortSelect) {
+          sortSelect.value = savedSort;
+        }
+      }
+
       const savedFilter = readStorageValue(STORAGE_KEYS.TIER_FILTER);
       if (savedFilter) {
         const filterSelect = document.getElementById('tierFilterSelect');
@@ -2174,11 +2435,50 @@
         const mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(rec.gpsLat + ',' + rec.gpsLng);
         links += '<a href="' + mapsUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--hydro-blue); font-weight:600;">📍 แผนที่ GPS</a>';
       }
-      links += '<button type="button" class="mini-tag" style="cursor:pointer; color:var(--hydro-blue); font-weight:600; background:hsl(204, 80%, 94%); border-color:hsl(204, 70%, 76%);" onclick="openCaseEvidenceLightbox(\'' + rec.requestId + '\')">🖼️ เปิดดูภาพบนเว็บ</button>';
-      if (rec.evidenceFolderUrl) {
-        links += '<a href="' + rec.evidenceFolderUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--text-secondary);">📁 Drive</a>';
+      if (rec.photoHouseUrl || rec.photoWaterUrl) {
+        links += '<button type="button" class="mini-tag" style="cursor:pointer; color:var(--hydro-blue); font-weight:600; background:hsl(204, 80%, 94%); border-color:hsl(204, 70%, 76%);" onclick="openCaseEvidenceLightbox(\'' + rec.requestId + '\')">🖼️ เปิดดูภาพบนเว็บ</button>';
+      } else {
+        links += '<span class="mini-tag" style="color:var(--text-secondary); background:hsl(215, 20%, 96%); border-color:hsl(215, 16%, 86%);">📷 ไม่มีภาพแนบ</span>';
       }
       return links;
+    }
+
+    function parseThaiDateStringToTimestamp(dateStr) {
+      if (!dateStr) return 0;
+      const str = String(dateStr).trim();
+      const slashParts = str.split(' ');
+      if (slashParts[0] && slashParts[0].indexOf('/') !== -1) {
+        const dmy = slashParts[0].split('/');
+        if (dmy.length === 3) {
+          const day = parseInt(dmy[0], 10);
+          const month = parseInt(dmy[1], 10) - 1;
+          const year = parseInt(dmy[2], 10);
+          let hour = 0, min = 0, sec = 0;
+          if (slashParts[1]) {
+            const hms = slashParts[1].split(':');
+            hour = parseInt(hms[0] || '0', 10);
+            min = parseInt(hms[1] || '0', 10);
+            sec = parseInt(hms[2] || '0', 10);
+          }
+          return new Date(year, month, day, hour, min, sec).getTime();
+        }
+      }
+      const timestamp = Date.parse(str);
+      return isNaN(timestamp) ? 0 : timestamp;
+    }
+
+    function toggleColumnSort(columnType) {
+      const sortSelect = document.getElementById('officerSortSelect');
+      if (!sortSelect) return;
+      const currentVal = sortSelect.value;
+      if (columnType === 'TIME') {
+        sortSelect.value = (currentVal === 'TIME_DESC') ? 'TIME_ASC' : 'TIME_DESC';
+      } else if (columnType === 'WATER') {
+        sortSelect.value = (currentVal === 'WATER_DESC') ? 'TIME_DESC' : 'WATER_DESC';
+      } else if (columnType === 'PRIORITY') {
+        sortSelect.value = (currentVal === 'PRIORITY_DESC') ? 'TIME_DESC' : 'PRIORITY_DESC';
+      }
+      renderOfficerTable();
     }
 
     function renderOfficerTable() {
@@ -2207,6 +2507,45 @@
         const combinedText = (rowItem.requestId + ' ' + rowItem.fullname + ' ' + rowItem.addressText + ' ' + rowItem.citizenId).toLowerCase();
         return combinedText.indexOf(searchKeyword) !== -1;
       });
+
+      const sortSelect = document.getElementById('officerSortSelect');
+      const sortMode = sortSelect ? sortSelect.value : 'TIME_DESC';
+      saveStorageValue(STORAGE_KEYS.OFFICER_SORT, sortMode);
+
+      filteredList.sort(function (a, b) {
+        if (sortMode === 'TIME_DESC') {
+          return parseThaiDateStringToTimestamp(b.createdAt) - parseThaiDateStringToTimestamp(a.createdAt);
+        } else if (sortMode === 'TIME_ASC') {
+          return parseThaiDateStringToTimestamp(a.createdAt) - parseThaiDateStringToTimestamp(b.createdAt);
+        } else if (sortMode === 'PRIORITY_DESC') {
+          const scoreDiff = (Number(b.priorityScore) || 0) - (Number(a.priorityScore) || 0);
+          if (scoreDiff !== 0) return scoreDiff;
+          return parseThaiDateStringToTimestamp(b.createdAt) - parseThaiDateStringToTimestamp(a.createdAt);
+        } else if (sortMode === 'WATER_DESC') {
+          const waterDiff = (Number(b.waterDepthCm) || 0) - (Number(a.waterDepthCm) || 0);
+          if (waterDiff !== 0) return waterDiff;
+          return parseThaiDateStringToTimestamp(b.createdAt) - parseThaiDateStringToTimestamp(a.createdAt);
+        } else if (sortMode === 'REQ_DESC') {
+          return String(b.requestId).localeCompare(String(a.requestId));
+        }
+        return 0;
+      });
+
+      const iconTime = document.getElementById('sortIconTime');
+      const iconWater = document.getElementById('sortIconWater');
+      const iconPriority = document.getElementById('sortIconPriority');
+      if (iconTime) {
+        iconTime.textContent = (sortMode === 'TIME_DESC') ? '▼' : (sortMode === 'TIME_ASC' ? '▲' : '↕️');
+        iconTime.style.color = (sortMode === 'TIME_DESC' || sortMode === 'TIME_ASC') ? 'var(--hydro-blue)' : 'var(--text-secondary)';
+      }
+      if (iconWater) {
+        iconWater.textContent = (sortMode === 'WATER_DESC') ? '▼' : '↕️';
+        iconWater.style.color = (sortMode === 'WATER_DESC') ? 'var(--hydro-blue)' : 'var(--text-secondary)';
+      }
+      if (iconPriority) {
+        iconPriority.textContent = (sortMode === 'PRIORITY_DESC') ? '▼' : '↕️';
+        iconPriority.style.color = (sortMode === 'PRIORITY_DESC') ? 'var(--hydro-blue)' : 'var(--text-secondary)';
+      }
 
       if (filteredList.length === 0) {
         let emptyMessage = 'ไม่พบรายการคำร้องที่ตรงกับเงื่อนไข';
@@ -2357,6 +2696,22 @@
       document.getElementById('modalRequestDisplay').value = requestId + ' — ' + fullname;
 
       const rec = cachedRegistrations.find(function (r) { return r.requestId === requestId; });
+      const viewPhotosBtn = document.getElementById('modalViewPhotosBtn');
+      if (viewPhotosBtn) {
+        const hasPhotos = rec && (rec.photoHouseUrl || rec.photoWaterUrl);
+        if (hasPhotos) {
+          viewPhotosBtn.disabled = false;
+          viewPhotosBtn.textContent = '🖼️ ดูภาพความเสียหาย';
+          viewPhotosBtn.style.opacity = '1';
+          viewPhotosBtn.style.cursor = 'pointer';
+        } else {
+          viewPhotosBtn.disabled = true;
+          viewPhotosBtn.textContent = '📷 ไม่มีภาพแนบ';
+          viewPhotosBtn.style.opacity = '0.6';
+          viewPhotosBtn.style.cursor = 'not-allowed';
+        }
+      }
+
       if (rec && rec.claimStatus === 'ไม่อนุมัติ') {
         setAssessmentDecision('REJECT');
       } else {
@@ -2678,26 +3033,6 @@
     let lbDragStartX = 0;
     let lbDragStartY = 0;
 
-    function createSampleEvidenceSvgDataUri(titleText, subtitleText, waterCm) {
-      const svgMarkup = '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">' +
-        '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient>' +
-        '<linearGradient id="flood" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0284C7" stop-opacity="0.88"/><stop offset="100%" stop-color="#0F172A" stop-opacity="0.96"/></linearGradient></defs>' +
-        '<rect width="1200" height="800" fill="url(#sky)"/>' +
-        '<polygon points="600,150 280,360 920,360" fill="#B45309" stroke="#FDE68A" stroke-width="4"/>' +
-        '<rect x="340" y="360" width="520" height="320" fill="#F8FAFC" stroke="#475569" stroke-width="4"/>' +
-        '<rect x="420" y="420" width="110" height="110" fill="#38BDF8" stroke="#1E293B" stroke-width="4"/>' +
-        '<rect x="660" y="420" width="110" height="110" fill="#38BDF8" stroke="#1E293B" stroke-width="4"/>' +
-        '<rect x="545" y="470" width="90" height="210" fill="#78350F" stroke="#1E293B" stroke-width="4"/>' +
-        '<rect x="0" y="460" width="1200" height="340" fill="url(#flood)"/>' +
-        '<line x1="200" y1="460" x2="1000" y2="460" stroke="#FACC15" stroke-width="5" stroke-dasharray="14,10"/>' +
-        '<rect x="60" y="50" width="1080" height="95" rx="14" fill="#0F172A" fill-opacity="0.82"/>' +
-        '<text x="95" y="95" fill="#F8FAFC" font-family="sans-serif" font-size="30" font-weight="bold">' + titleText + '</text>' +
-        '<text x="95" y="130" fill="#93C5FD" font-family="sans-serif" font-size="22">' + subtitleText + ' | ระดับน้ำท่วมขังวัดได้: ' + waterCm + ' ซม.</text>' +
-        '<text x="230" y="445" fill="#FEF08A" font-family="sans-serif" font-size="24" font-weight="bold">▲ เส้นระดับน้ำท่วมสูงสุด (' + waterCm + ' ซม.)</text>' +
-        '</svg>';
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svgMarkup);
-    }
-
     function previewSelectedEvidencePhoto(fileInputEl, previewBoxId, previewImgId) {
       const boxEl = document.getElementById(previewBoxId);
       const imgEl = document.getElementById(previewImgId);
@@ -2733,22 +3068,33 @@
     }
 
     function openIntakePreviewLightbox(startIndex) {
-      const houseSrc = document.getElementById('housePreviewImg').src;
-      const waterSrc = document.getElementById('waterPreviewImg').src;
-      const fallbackHouse = createSampleEvidenceSvgDataUri('ตัวอย่างภาพสภาพบ้าน', 'ยังไม่ได้เลือกไฟล์ภาพที่ 1', 40);
-      const fallbackWater = createSampleEvidenceSvgDataUri('ตัวอย่างภาพระดับน้ำ', 'ยังไม่ได้เลือกไฟล์ภาพที่ 2', 40);
+      const houseImg = document.getElementById('housePreviewImg');
+      const waterImg = document.getElementById('waterPreviewImg');
+      const houseSrc = houseImg ? houseImg.src : '';
+      const waterSrc = waterImg ? waterImg.src : '';
 
-      lightboxSlides = [
-        {
+      const slides = [];
+      if (houseSrc && houseSrc.indexOf('data:image') === 0) {
+        slides.push({
           label: '1. ภาพถ่ายสภาพบ้านที่เลือกไว้',
-          src: (houseSrc && houseSrc.indexOf('data:image') === 0) ? houseSrc : fallbackHouse
-        },
-        {
+          src: houseSrc
+        });
+      }
+      if (waterSrc && waterSrc.indexOf('data:image') === 0) {
+        slides.push({
           label: '2. ภาพถ่ายระดับน้ำที่เลือกไว้',
-          src: (waterSrc && waterSrc.indexOf('data:image') === 0) ? waterSrc : fallbackWater
-        }
-      ];
-      launchLightboxWithSlides('ตรวจสอบภาพก่อนส่งคำร้อง', startIndex || 0);
+          src: waterSrc
+        });
+      }
+
+      if (slides.length === 0) {
+        showBannerMessage('ยังไม่ได้เลือกไฟล์ภาพถ่ายหลักฐาน กรุณาเลือกไฟล์ก่อนกดดูภาพ', true);
+        return;
+      }
+
+      lightboxSlides = slides;
+      const targetIndex = (startIndex < slides.length) ? startIndex : 0;
+      launchLightboxWithSlides('ตรวจสอบภาพถ่ายก่อนส่งคำร้อง', targetIndex);
     }
 
     function openModalCurrentCaseGallery() {
@@ -2770,56 +3116,61 @@
         return;
       }
 
-      const fallbackHouse = createSampleEvidenceSvgDataUri(
-        'ภาพหลักฐานที่ 1: สภาพตัวบ้าน (' + targetRecord.requestId + ')',
-        targetRecord.fullname + ' — ' + targetRecord.addressText,
-        targetRecord.waterDepthCm
-      );
-      const fallbackWater = createSampleEvidenceSvgDataUri(
-        'ภาพหลักฐานที่ 2: ระดับน้ำท่วมขังภายในบ้าน (' + targetRecord.requestId + ')',
-        'พิกัด GPS: ' + (targetRecord.gpsLat || '-') + ', ' + (targetRecord.gpsLng || '-'),
-        targetRecord.waterDepthCm
-      );
+      const hasHousePhoto = !!(targetRecord.photoHouseUrl && targetRecord.photoHouseUrl.trim());
+      const hasWaterPhoto = !!(targetRecord.photoWaterUrl && targetRecord.photoWaterUrl.trim());
+
+      if (!hasHousePhoto && !hasWaterPhoto) {
+        showBannerMessage('คำร้อง ' + targetRecord.requestId + ' (' + targetRecord.fullname + ') ไม่ได้แนบภาพถ่ายหลักฐานในระบบ', true);
+        return;
+      }
 
       if (
         typeof google !== 'undefined' &&
         google.script &&
-        google.script.run &&
-        (targetRecord.photoHouseUrl || targetRecord.photoWaterUrl)
+        google.script.run
       ) {
+        showBannerMessage('กำลังดึงภาพถ่ายหลักฐาน...', false);
         google.script.run
           .withSuccessHandler(function (galleryPack) {
-            lightboxSlides = [
-              {
+            const slides = [];
+            if (galleryPack && galleryPack.houseImageSrc) {
+              slides.push({
                 label: '1. ภาพสภาพตัวบ้าน (' + targetRecord.requestId + ')',
-                src: (galleryPack && galleryPack.houseImageSrc) ? galleryPack.houseImageSrc : fallbackHouse
-              },
-              {
+                src: galleryPack.houseImageSrc
+              });
+            }
+            if (galleryPack && galleryPack.waterImageSrc) {
+              slides.push({
                 label: '2. ภาพระดับน้ำท่วมขัง (' + targetRecord.requestId + ')',
-                src: (galleryPack && galleryPack.waterImageSrc) ? galleryPack.waterImageSrc : fallbackWater
-              }
-            ];
+                src: galleryPack.waterImageSrc
+              });
+            }
+            if (slides.length === 0) {
+              showBannerMessage('ไม่สามารถเปิดไฟล์ภาพได้ หรือไฟล์ภาพไม่พร้อมใช้งาน', true);
+              return;
+            }
+            lightboxSlides = slides;
             launchLightboxWithSlides(targetRecord.requestId + ' — ' + targetRecord.fullname, 0);
           })
-          .withFailureHandler(function () {
-            lightboxSlides = [
-              { label: '1. ภาพสภาพตัวบ้าน', src: fallbackHouse },
-              { label: '2. ภาพระดับน้ำท่วมขัง', src: fallbackWater }
-            ];
-            launchLightboxWithSlides(targetRecord.requestId + ' — ' + targetRecord.fullname, 0);
+          .withFailureHandler(function (err) {
+            showBannerMessage('เกิดข้อผิดพลาดในการโหลดภาพ: ' + (err.message || 'ไม่สามารถติดต่อเซิร์ฟเวอร์'), true);
           })
           .fetchEvidenceGalleryImages(targetRecord.photoHouseUrl, targetRecord.photoWaterUrl);
       } else {
-        lightboxSlides = [
-          {
+        const slides = [];
+        if (hasHousePhoto) {
+          slides.push({
             label: '1. ภาพสภาพตัวบ้าน (' + targetRecord.requestId + ')',
-            src: targetRecord.photoHouseUrl || fallbackHouse
-          },
-          {
+            src: targetRecord.photoHouseUrl
+          });
+        }
+        if (hasWaterPhoto) {
+          slides.push({
             label: '2. ภาพระดับน้ำท่วมขัง (' + targetRecord.requestId + ')',
-            src: targetRecord.photoWaterUrl || fallbackWater
-          }
-        ];
+            src: targetRecord.photoWaterUrl
+          });
+        }
+        lightboxSlides = slides;
         launchLightboxWithSlides(targetRecord.requestId + ' — ' + targetRecord.fullname, 0);
       }
     }
@@ -2963,6 +3314,61 @@
         else if (keyEv.key === 'Escape') closeImageLightbox();
       });
     }
+
+    function toggleLineQrPopover(forceState) {
+      const popoverEl = document.getElementById('lineQrPopover');
+      if (!popoverEl) return;
+      if (typeof forceState === 'boolean') {
+        popoverEl.classList.toggle('open', forceState);
+      } else {
+        popoverEl.classList.toggle('open');
+      }
+    }
+
+    function copyLineId(btnEl) {
+      const lineId = '@524nkkpx';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(lineId).then(function () {
+          if (btnEl) {
+            const originalText = btnEl.textContent;
+            btnEl.textContent = '✅ คัดลอกแล้ว!';
+            btnEl.style.borderColor = '#06C755';
+            btnEl.style.color = '#06C755';
+            btnEl.style.fontWeight = '700';
+            setTimeout(function () {
+              btnEl.textContent = originalText;
+              btnEl.style.borderColor = '';
+              btnEl.style.color = '';
+              btnEl.style.fontWeight = '';
+            }, 2500);
+          }
+        }).catch(function () {
+          fallbackPromptCopy(lineId);
+        });
+      } else {
+        fallbackPromptCopy(lineId);
+      }
+    }
+
+    function fallbackPromptCopy(lineId) {
+      prompt('คัดลอก LINE ID ด้านล่างนี้:', lineId);
+    }
+
+    document.addEventListener('click', function (ev) {
+      const widget = document.getElementById('lineFloatingWidget');
+      const topPill = document.querySelector('.line-top-pill');
+      const noticeBtn = document.querySelector('.line-notice-strip .line-add-btn-mini');
+      if (!widget) return;
+      const popover = document.getElementById('lineQrPopover');
+      if (popover && popover.classList.contains('open')) {
+        const clickedInsideWidget = widget.contains(ev.target);
+        const clickedTopPill = topPill && topPill.contains(ev.target);
+        const clickedNoticeBtn = noticeBtn && noticeBtn.contains(ev.target);
+        if (!clickedInsideWidget && !clickedTopPill && !clickedNoticeBtn) {
+          popover.classList.remove('open');
+        }
+      }
+    });
 
     recalculateLiveTriage();
     restorePersistedPortalState();

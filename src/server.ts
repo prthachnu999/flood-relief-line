@@ -60,7 +60,12 @@ serverApp.patch('/api/v1/claims/:claimId/status', (incomingRequest, outgoingResp
 });
 
 serverApp.get('/health', (_incomingRequest, outgoingResponse) => {
-  outgoingResponse.status(200).json({ systemStatus: 'ONLINE', timestamp: new Date().toISOString() });
+  outgoingResponse.status(200).json({
+    systemStatus: 'ONLINE',
+    service: 'FloodReliefLineBot',
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime())
+  });
 });
 
 serverApp.listen(serverPort, () => {

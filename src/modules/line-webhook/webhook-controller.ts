@@ -104,22 +104,14 @@ export class LineWebhookController {
     }
 
     if (matchEmergencyIntent(userMessageText)) {
-      await this.sendLineReply(replyToken, [
-        {
-          type: 'text',
-          text: `🚨 ศูนย์รับแจ้งเหตุน้ำท่วมและขอความช่วยเหลือด่วน\n\n👉 แตะลิงก์นี้เพื่อส่งพิกัด GPS กู้ภัยทันที:\n${this.liffAppUrl}\n\n(กดปุ่ม "ดึงพิกัดปัจจุบัน" ในหน้าเว็บ ระบบจะจับตำแหน่งดาวเทียมอัตโนมัติทันที)\n\nหรือติดต่อสายด่วนนิรภัย ปภ. โทร 1784 (โทรฟรี 24 ชม.)`
-        }
-      ]);
+      const emergencyCard = FlexMessageBuilder.buildEmergencyHelpFlex(this.liffAppUrl);
+      await this.sendLineReply(replyToken, [emergencyCard]);
       return;
     }
 
     if (matchHotlineIntent(userMessageText)) {
-      await this.sendLineReply(replyToken, [
-        {
-          type: 'text',
-          text: '📞 สายด่วนนิรภัย ปภ. 1784 (โทรฟรี 24 ชั่วโมง)\n\n• กรมป้องกันและบรรเทาสาธารณภัย (ปภ.)\n• ศูนย์เตือนภัยพิบัติแห่งชาติ\n• แจ้งเหตุด่วนทาง LINE ปภ.: @1784DDPM'
-        }
-      ]);
+      const hotlineCard = FlexMessageBuilder.buildHotlineFlex();
+      await this.sendLineReply(replyToken, [hotlineCard]);
       return;
     }
 
