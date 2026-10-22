@@ -678,6 +678,16 @@ function submitCitizenRegistration(submissionForm) {
     writeFormattedSheetRow(regSheet, newRowValues, regSchema.textFormatColumnIndices);
     appendAuditLogEntry(spreadsheet, requestId, 'ยื่นคำร้องผู้ประสบภัย', 'ระบบออนไลน์', '-', initialStatus);
 
+    notifyLineNewRegistration({
+      requestId: requestId,
+      fullname: String(submissionForm.fullname).trim(),
+      subdistrict: String(submissionForm.subdistrict).trim(),
+      waterDepthCm: Number(submissionForm.waterDepthCm) || 0,
+      priorityTier: triageEvaluation.priorityTier,
+      gpsLat: String(submissionForm.gpsLat || ''),
+      gpsLng: String(submissionForm.gpsLng || '')
+    });
+
     return {
       requestId: requestId,
       priorityScore: triageEvaluation.priorityScore,
@@ -768,6 +778,16 @@ function recordFieldAssessment(assessmentInput, adminPasscode) {
     previousStatus,
     updatedClaimStatus
   );
+
+  const claimantName = String(regSheet.getRange(matchedRowIndex, 4).getValue() || '');
+  notifyLineAssessmentApproved({
+    requestId: assessmentInput.requestId,
+    fullname: claimantName,
+    damageCategory: thaiDamageLabel,
+    approvedAmountThb: approvedAmountThb,
+    isRejected: isRejected,
+    reliefPackDelivered: Boolean(assessmentInput.reliefPackDelivered)
+  });
 
   return {
     assessmentId: assessmentId,
@@ -1055,6 +1075,15 @@ function recordDisbursementPayment(paymentInput, adminPasscode) {
     CLAIM_STATUS_TH.PAID
   );
 
+  const recipientName = String(regSheet.getRange(matchedRowIndex, 4).getValue() || '');
+  notifyLineDisbursementPaid({
+    requestId: paymentInput.requestId,
+    fullname: recipientName,
+    disbursedAmountThb: approvedThb,
+    paymentChannel: paymentInput.paymentChannel || 'พร้อมเพย์ ธ.กรุงไทย (KTB)',
+    transactionRef: txRef
+  });
+
   return {
     disbursementId: disbursementId,
     requestId: paymentInput.requestId,
@@ -1142,4 +1171,308 @@ function testSeedSampleFloodData() {
     reliefPackDelivered: true,
     inspectorNotes: 'น้ำท่วมสูงเกิน 1.3 เมตร มีผู้ป่วยติดเตียง มอบถุงยังชีพแล้ว อนุมัติเยียวยา 30,000 บาท'
   }, SYSTEM_CONFIG.ADMIN_PASSCODE);
+}
+
+const LINE_BOT_CONFIG = {
+  CHANNEL_ACCESS_TOKEN: 'wwDapxda/LPw3YHuY2KgBN4hSm9LETc0fnl6dLmhdZCrrm1P3sASlY9k/QTeQkWVWfYdF3KRWb4yIU+tK4QENPAfa0vcNdMfTAPf2RVBhqGwY4zYHQ6mCALA/Sj4+Vx0RZGhGirVra808+UIIq3UWgdB04t89/1O/w1cDnyilFU=',
+  BROADCAST_URL: 'https://api.line.me/v2/bot/message/broadcast'
+};
+
+function dispatchLineBroadcastMessage(flexMessageContainer) {
+  if (!LINE_BOT_CONFIG.CHANNEL_ACCESS_TOKEN) {
+    return;
+  }
+  try {
+    const requestOptions = {
+      method: 'post',
+      contentType: 'application/json',
+      headers: {
+        Authorization: 'Bearer ' + LINE_BOT_CONFIG.CHANNEL_ACCESS_TOKEN
+      },
+      payload: JSON.stringify({
+        messages: [flexMessageContainer]
+      }),
+      muteHttpExceptions: true
+    };
+    UrlFetchApp.fetch(LINE_BOT_CONFIG.BROADCAST_URL, requestOptions);
+  } catch (dispatchError) {
+    Logger.log('LINE Dispatch Warning: ' + dispatchError);
+  }
+}
+
+function notifyLineNewRegistration(citizenRecord) {
+  const isCriticalRed = citizenRecord.priorityTier === PRIORITY_TIERS_TH.RED;
+  const headerColor = isCriticalRed ? '#DC2626' : '#2563EB';
+
+  const flexCard = {
+    type: 'flex',
+    altText: '🚨 มีผู้ยื่นคำร้องใหม่: ' + citizenRecord.requestId + ' (' + citizenRecord.fullname + ')',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: headerColor,
+        paddingAll: '16px',
+        contents: [
+          {
+            type: 'text',
+            text: 'ระบบช่วยเหลือผู้ประสบอุทกภัย',
+            color: '#E0E7FF',
+            size: 'xs',
+            weight: 'bold'
+          },
+          {
+            type: 'text',
+            text: '🚨 มีผู้ยื่นขอความช่วยเหลือใหม่',
+            color: '#FFFFFF',
+            size: 'lg',
+            weight: 'bold',
+            margin: 'sm'
+          }
+        ]
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'รหัสคำร้อง', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: citizenRecord.requestId, color: '#0F172A', size: 'xs', weight: 'bold', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ผู้ประสบภัย', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: citizenRecord.fullname, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ตำบล/พื้นที่', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: citizenRecord.subdistrict, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ระดับน้ำ', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: citizenRecord.waterDepthCm + ' ซม.', color: '#0F172A', size: 'xs', weight: 'bold', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ความเร่งด่วน', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: citizenRecord.priorityTier, color: headerColor, size: 'xs', weight: 'bold', flex: 6, align: 'end' }
+            ]
+          }
+        ]
+      }
+    }
+  };
+
+  dispatchLineBroadcastMessage(flexCard);
+}
+
+function notifyLineAssessmentApproved(assessmentRecord) {
+  const headerColor = assessmentRecord.isRejected ? '#64748B' : '#059669';
+  const statusHeadline = assessmentRecord.isRejected ? 'ไม่อนุมัติการเยียวยา' : 'อนุมัติวงเงินเยียวยาแล้ว';
+
+  const flexCard = {
+    type: 'flex',
+    altText: '📋 ผลการพิจารณาคำร้อง: ' + assessmentRecord.requestId + ' (' + statusHeadline + ')',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: headerColor,
+        paddingAll: '16px',
+        contents: [
+          {
+            type: 'text',
+            text: 'ผลการประเมินความเสียหายภาคสนาม',
+            color: '#E2E8F0',
+            size: 'xs',
+            weight: 'bold'
+          },
+          {
+            type: 'text',
+            text: statusHeadline,
+            color: '#FFFFFF',
+            size: 'lg',
+            weight: 'bold',
+            margin: 'sm'
+          }
+        ]
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'รหัสคำร้อง', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: assessmentRecord.requestId, color: '#0F172A', size: 'xs', weight: 'bold', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ผู้ประสบภัย', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: assessmentRecord.fullname, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ระดับความเสียหาย', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: assessmentRecord.damageCategory, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'วงเงินที่อนุมัติ', color: '#64748B', size: 'xs', flex: 4 },
+              {
+                type: 'text',
+                text: assessmentRecord.approvedAmountThb > 0
+                  ? '฿' + assessmentRecord.approvedAmountThb.toLocaleString('th-TH') + ' บาท'
+                  : '0 บาท',
+                color: assessmentRecord.approvedAmountThb > 0 ? '#059669' : '#64748B',
+                size: 'xs',
+                weight: 'bold',
+                flex: 6,
+                align: 'end'
+              }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'การมอบถุงยังชีพ', color: '#64748B', size: 'xs', flex: 4 },
+              {
+                type: 'text',
+                text: assessmentRecord.reliefPackDelivered ? 'มอบแล้ว' : 'ยังไม่ได้มอบ',
+                color: '#0F172A',
+                size: 'xs',
+                flex: 6,
+                align: 'end'
+              }
+            ]
+          }
+        ]
+      }
+    }
+  };
+
+  dispatchLineBroadcastMessage(flexCard);
+}
+
+function notifyLineDisbursementPaid(disbursementRecord) {
+  const flexCard = {
+    type: 'flex',
+    altText: '💸 โอนเงินเยียวยาสำเร็จ: ' + disbursementRecord.requestId,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#0F766E',
+        paddingAll: '16px',
+        contents: [
+          {
+            type: 'text',
+            text: 'การเงินและบัญชี ปภ.',
+            color: '#CCFBF1',
+            size: 'xs',
+            weight: 'bold'
+          },
+          {
+            type: 'text',
+            text: '💸 โอนเงินเยียวยาสำเร็จแล้ว',
+            color: '#FFFFFF',
+            size: 'lg',
+            weight: 'bold',
+            margin: 'sm'
+          }
+        ]
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'รหัสคำร้อง', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: disbursementRecord.requestId, color: '#0F172A', size: 'xs', weight: 'bold', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ผู้รับเงิน', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: disbursementRecord.fullname, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'จำนวนเงินที่โอน', color: '#64748B', size: 'xs', flex: 4 },
+              {
+                type: 'text',
+                text: '฿' + disbursementRecord.disbursedAmountThb.toLocaleString('th-TH') + ' บาท',
+                color: '#059669',
+                size: 'sm',
+                weight: 'bold',
+                flex: 6,
+                align: 'end'
+              }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'ช่องทางโอน', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: disbursementRecord.paymentChannel, color: '#0F172A', size: 'xs', flex: 6, align: 'end' }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: 'เลขอ้างอิง', color: '#64748B', size: 'xs', flex: 4 },
+              { type: 'text', text: disbursementRecord.transactionRef, color: '#64748B', size: 'xs', flex: 6, align: 'end' }
+            ]
+          }
+        ]
+      }
+    }
+  };
+
+  dispatchLineBroadcastMessage(flexCard);
 }
