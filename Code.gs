@@ -731,14 +731,15 @@ function findRegistrationRowIndexById(regSheet, targetRequestId) {
 function findRegistrationByKeyword(searchKeyword) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
-  const lastRow = regSheet.getLastRow();
-  if (lastRow <= 1) {
+  if (!regSheet || regSheet.getLastRow() <= 1) {
     return [];
   }
 
+  const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
+  const approvedAmountsByReq = buildApprovedAmountMap(assessmentSheet);
   const cleanKeyword = String(searchKeyword || '').trim();
   const cleanDigits = sanitizeNumericDigits(cleanKeyword);
-  const allRecords = regSheet.getRange(2, 1, lastRow - 1, 24).getValues();
+  const allRecords = regSheet.getRange(2, 1, regSheet.getLastRow() - 1, 24).getValues();
   const matchedRecords = [];
 
   for (let idx = 0; idx < allRecords.length; idx++) {
@@ -748,12 +749,15 @@ function findRegistrationByKeyword(searchKeyword) {
     if (rowRequestId === cleanKeyword || (cleanDigits.length === 13 && rowCitizenId === cleanDigits)) {
       matchedRecords.push({
         requestId: rowRequestId,
-        createdAt: rowCells[1],
-        fullname: rowCells[3],
-        subdistrict: rowCells[7],
-        priorityScore: rowCells[21],
-        priorityTier: rowCells[22],
-        claimStatus: rowCells[23]
+        createdAt: String(rowCells[1]),
+        fullname: String(rowCells[3]),
+        addressText: 'บ้านเลขที่ ' + rowCells[5] + ' ม.' + rowCells[6] + ' ต.' + rowCells[7] + ' อ.' + rowCells[8],
+        subdistrict: String(rowCells[7]),
+        waterDepthCm: Number(rowCells[11]) || 0,
+        priorityScore: Number(rowCells[21]) || 0,
+        priorityTier: String(rowCells[22]),
+        claimStatus: String(rowCells[23]),
+        approvedRemedyThb: approvedAmountsByReq[rowRequestId] || 0
       });
     }
   }
@@ -864,9 +868,14 @@ function readAllRegistrations(regSheet, approvedAmountsByReq) {
       promptpayNumber: String(rowCells[10]),
       waterDepthCm: Number(rowCells[11]) || 0,
       isBedridden: String(rowCells[12]),
+      elderlyCount: Number(rowCells[13]) || 0,
+      childCount: Number(rowCells[14]) || 0,
       isIsolated: String(rowCells[15]),
       gpsLat: String(rowCells[16]),
       gpsLng: String(rowCells[17]),
+      evidenceFolderUrl: String(rowCells[18] || ''),
+      photoHouseUrl: String(rowCells[19] || ''),
+      photoWaterUrl: String(rowCells[20] || ''),
       priorityScore: Number(rowCells[21]) || 0,
       priorityTier: String(rowCells[22]),
       claimStatus: String(rowCells[23]),
@@ -916,6 +925,12 @@ function recordDisbursementPayment(paymentInput, adminPasscode) {
     throw new Error('ไม่พบรหัสคำร้อง: ' + paymentInput.requestId);
   }
 
+  const statusCell = regSheet.getRange(matchedRowIndex, 24);
+  const previousStatus = String(statusCell.getValue());
+  if (previousStatus === CLAIM_STATUS_TH.PAID) {
+    throw new Error('คำร้อง ' + paymentInput.requestId + ' ได้รับการโอนเงินเยียวยาไปแล้ว');
+  }
+
   const approvedAmountsByReq = buildApprovedAmountMap(assessmentSheet);
   const approvedThb = approvedAmountsByReq[paymentInput.requestId] || Number(paymentInput.disbursedAmountThb) || 0;
   if (approvedThb <= 0) {
@@ -939,9 +954,6 @@ function recordDisbursementPayment(paymentInput, adminPasscode) {
   ];
 
   writeFormattedSheetRow(disburseSheet, disburseRow, disburseSchema.textFormatColumnIndices);
-
-  const statusCell = regSheet.getRange(matchedRowIndex, 24);
-  const previousStatus = statusCell.getValue();
   statusCell.setValue(CLAIM_STATUS_TH.PAID);
 
   appendAuditLogEntry(

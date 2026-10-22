@@ -335,11 +335,13 @@
       background: var(--bg-subtle);
       color: var(--hydro-navy);
       border: 1px solid var(--border-color);
-      padding: 9px 16px;
+      padding: 8px 14px;
       border-radius: 8px;
-      font-size: 0.86rem;
+      font-size: 0.84rem;
       font-weight: 600;
       cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
       transition: background 0.15s ease;
     }
 
@@ -426,6 +428,18 @@
       color: var(--tier-green-text);
     }
 
+    .mini-tag {
+      display: inline-block;
+      background: var(--bg-subtle);
+      color: var(--hydro-navy);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      margin-right: 4px;
+      margin-top: 4px;
+    }
+
     .table-wrapper {
       overflow-x: auto;
     }
@@ -441,6 +455,7 @@
       padding: 12px 14px;
       text-align: left;
       border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
     }
 
     .data-table th {
@@ -508,13 +523,13 @@
         <p id="portalHeroSubtitle" class="hero-subtitle">สำหรับประชาชนยื่นคำร้องขอรับความช่วยเหลือฉุกเฉิน และติดตามสถานะการโอนเงินเยียวยา</p>
       </div>
 
-      <!-- เมนูสำหรับประชาชน (แสดงเป็นค่าเริ่มต้น) -->
+      <!-- เมนูสำหรับประชาชน -->
       <nav id="citizenNavTabs" class="nav-tabs">
-        <button class="tab-btn active" onclick="switchCitizenView('intakeView', this)">📝 ยื่นคำร้องผู้ประสบภัย</button>
-        <button class="tab-btn" onclick="switchCitizenView('trackingView', this)">🔍 ตรวจสอบสถานะคำร้อง</button>
+        <button id="citizenTabIntake" class="tab-btn active" onclick="switchCitizenView('intakeView', this)">📝 ยื่นคำร้องผู้ประสบภัย</button>
+        <button id="citizenTabTrack" class="tab-btn" onclick="switchCitizenView('trackingView', this)">🔍 ตรวจสอบสถานะคำร้อง</button>
       </nav>
 
-      <!-- เมนูสำหรับผู้ช่วยเหลือ/แอดมิน (ซ่อนไว้จนกว่าจะใส่รหัสผ่านแอดมินถูกต้อง) -->
+      <!-- เมนูสำหรับผู้ช่วยเหลือ/แอดมิน -->
       <nav id="adminNavTabs" class="nav-tabs" style="display: none;">
         <button id="adminTab1Btn" class="tab-btn active" onclick="switchAdminView('officerView', this)">🛡️ สำรวจพื้นที่ / อนุมัติสิทธิ์</button>
         <button id="adminTab2Btn" class="tab-btn" onclick="switchAdminView('financeView', this)">💳 เบิกจ่ายงบ / ส่งธนาคาร</button>
@@ -553,19 +568,19 @@
           <div class="grid-2">
             <div class="form-group">
               <label class="form-label">เลขประจำตัวประชาชน (13 หลัก) *</label>
-              <input type="text" id="citizenId" class="form-control" maxlength="13" placeholder="เช่น 1234567890121" oninput="checkNationalIdLive(this.value)" required>
+              <input type="text" id="citizenId" class="form-control" inputmode="numeric" placeholder="เช่น 1234567890121" oninput="handleNationalIdInput(this)" required>
             </div>
             <div class="form-group">
               <label class="form-label">ชื่อ - นามสกุล *</label>
               <input type="text" id="fullname" class="form-control" placeholder="เช่น นายสมชาย ใจมั่น" required>
             </div>
             <div class="form-group">
-              <label class="form-label">เบอร์โทรศัพท์ที่ติดต่อได้ *</label>
-              <input type="tel" id="phoneNumber" class="form-control" maxlength="10" placeholder="เช่น 0812345678" required>
+              <label class="form-label">เบอร์โทรศัพท์ที่ติดต่อได้ (10 หลัก) *</label>
+              <input type="tel" id="phoneNumber" class="form-control" inputmode="numeric" placeholder="เช่น 0812345678" oninput="sanitizeDigitsInput(this, 10)" required>
             </div>
             <div class="form-group">
-              <label class="form-label">บัญชีพร้อมเพย์รับเงินเยียวยา (เบอร์มือถือ 10 หลัก หรือ เลขบัตร ปชช.) *</label>
-              <input type="text" id="promptpayNumber" class="form-control" maxlength="13" placeholder="เช่น 0812345678" required>
+              <label class="form-label">บัญชีพร้อมเพย์รับเงินเยียวยา (เบอร์มือถือ 10 หลัก หรือ เลขบัตร ปชช. 13 หลัก) *</label>
+              <input type="text" id="promptpayNumber" class="form-control" inputmode="numeric" placeholder="เช่น 0812345678" oninput="sanitizeDigitsInput(this, 13)" required>
             </div>
           </div>
         </div>
@@ -662,10 +677,10 @@
         <div class="section-heading">
           <span>🔍 ตรวจสอบสถานะคำร้องและผลการโอนเงินเยียวยา</span>
         </div>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <form onsubmit="handleTrackingFormSubmit(event)" style="display: flex; gap: 12px; flex-wrap: wrap;">
           <input type="text" id="trackingQueryInput" class="form-control" style="flex: 1;" placeholder="กรอกเลขบัตรประชาชน 13 หลัก หรือ รหัสคำร้อง (เช่น REQ-2569-00001)">
-          <button type="button" class="btn-primary" onclick="searchTrackingRecords()">ค้นหาข้อมูล</button>
-        </div>
+          <button type="submit" class="btn-primary">ค้นหาข้อมูล</button>
+        </form>
         <div id="trackingResultsContainer" style="margin-top: 20px;"></div>
       </div>
     </section>
@@ -697,7 +712,8 @@
         <div class="section-heading">
           <span>📋 ตารางคัดกรองและประเมินความเสียหายภาคสนาม (เฉพาะเจ้าหน้าที่ผู้ช่วยเหลือ)</span>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <select id="tierFilterSelect" class="form-control" style="width: auto;" onchange="renderOfficerTable()">
+            <input type="text" id="adminSearchInput" class="form-control" style="width: 220px;" placeholder="ค้นหาชื่อ / รหัส / ตำบล..." oninput="renderOfficerTable()">
+            <select id="tierFilterSelect" class="form-control" style="width: auto;" onchange="handleTierFilterChange()">
               <option value="ALL">แสดงทุกระดับความเร่งด่วน</option>
               <option value="วิกฤตเร่งด่วน (สีแดง)">🔴 เฉพาะกลุ่มวิกฤตเร่งด่วน (สีแดง)</option>
               <option value="ปานกลาง (สีเหลือง)">🟡 เฉพาะกลุ่มปานกลาง (สีเหลือง)</option>
@@ -711,11 +727,11 @@
             <thead>
               <tr>
                 <th>รหัสคำร้อง</th>
-                <th>ผู้ประสบภัย / เบอร์โทร</th>
-                <th>ที่อยู่ประสบภัย</th>
+                <th>ผู้ประสบภัย / กลุ่มเปราะบาง</th>
+                <th>ที่อยู่ & พิกัดแผนที่</th>
                 <th>ระดับน้ำ</th>
                 <th>ความเร่งด่วน (Triage)</th>
-                <th>สถานะปัจจุบัน</th>
+                <th>สถานะ / วงเงิน</th>
                 <th>การสำรวจ</th>
               </tr>
             </thead>
@@ -904,6 +920,13 @@
   </div>
 
   <script>
+    const STORAGE_KEYS = {
+      PORTAL_MODE: 'FLOOD_RELIEF_PORTAL_MODE_2569',
+      ADMIN_PASSCODE: 'FLOOD_RELIEF_ADMIN_TOKEN_2569',
+      ACTIVE_VIEW: 'FLOOD_RELIEF_ACTIVE_VIEW_2569',
+      TIER_FILTER: 'FLOOD_RELIEF_TIER_FILTER_2569'
+    };
+
     let activeAdminPasscode = '';
     let isAdminAuthenticated = false;
 
@@ -918,6 +941,15 @@
         subdistrict: 'ปากน้ำ',
         promptpayNumber: '0812345678',
         waterDepthCm: 135,
+        isBedridden: 'มีผู้ป่วยติดเตียง',
+        elderlyCount: 2,
+        childCount: 1,
+        isIsolated: 'ถูกตัดขาด',
+        gpsLat: '8.0863',
+        gpsLng: '98.9063',
+        evidenceFolderUrl: '',
+        photoHouseUrl: '',
+        photoWaterUrl: '',
         priorityScore: 100,
         priorityTier: 'วิกฤตเร่งด่วน (สีแดง)',
         claimStatus: 'อนุมัติเยียวยา',
@@ -933,6 +965,15 @@
         subdistrict: 'ทับปริก',
         promptpayNumber: '0898765432',
         waterDepthCm: 60,
+        isBedridden: 'ไม่มี',
+        elderlyCount: 1,
+        childCount: 0,
+        isIsolated: 'เข้าถึงได้',
+        gpsLat: '8.1240',
+        gpsLng: '98.8910',
+        evidenceFolderUrl: '',
+        photoHouseUrl: '',
+        photoWaterUrl: '',
         priorityScore: 40,
         priorityTier: 'ปานกลาง (สีเหลือง)',
         claimStatus: 'รอตรวจสอบ',
@@ -941,6 +982,26 @@
     ];
 
     let cachedDisbursements = [];
+
+    function saveStorageValue(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {}
+    }
+
+    function readStorageValue(key) {
+      try {
+        return localStorage.getItem(key) || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function removeStorageValue(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {}
+    }
 
     function hideAllViews() {
       const views = document.querySelectorAll('.view-section');
@@ -960,7 +1021,10 @@
       for (let j = 0; j < citizenButtons.length; j++) {
         citizenButtons[j].classList.remove('active');
       }
-      clickedButton.classList.add('active');
+      if (clickedButton) {
+        clickedButton.classList.add('active');
+      }
+      saveStorageValue(STORAGE_KEYS.ACTIVE_VIEW, targetViewId);
     }
 
     function switchAdminView(targetViewId, clickedButton) {
@@ -975,7 +1039,10 @@
       for (let j = 0; j < adminButtons.length; j++) {
         adminButtons[j].classList.remove('active');
       }
-      clickedButton.classList.add('active');
+      if (clickedButton) {
+        clickedButton.classList.add('active');
+      }
+      saveStorageValue(STORAGE_KEYS.ACTIVE_VIEW, targetViewId);
       loadDashboardData();
     }
 
@@ -1008,7 +1075,7 @@
             loginBtn.disabled = false;
             loginBtn.textContent = 'เข้าสู่ระบบแอดมิน';
             if (authOutcome && authOutcome.authorized) {
-              activateAdminPortal(enteredPasscode);
+              activateAdminPortal(enteredPasscode, 'officerView', true);
             } else {
               errorEl.style.display = 'block';
             }
@@ -1023,17 +1090,20 @@
         loginBtn.disabled = false;
         loginBtn.textContent = 'เข้าสู่ระบบแอดมิน';
         if (enteredPasscode === 'admin1784') {
-          activateAdminPortal(enteredPasscode);
+          activateAdminPortal(enteredPasscode, 'officerView', true);
         } else {
           errorEl.style.display = 'block';
         }
       }
     }
 
-    function activateAdminPortal(verifiedPasscode) {
+    function activateAdminPortal(verifiedPasscode, initialAdminViewId, showWelcomeBanner) {
       activeAdminPasscode = verifiedPasscode;
       isAdminAuthenticated = true;
       closeAdminLoginModal();
+
+      saveStorageValue(STORAGE_KEYS.PORTAL_MODE, 'ADMIN');
+      saveStorageValue(STORAGE_KEYS.ADMIN_PASSCODE, verifiedPasscode);
 
       document.getElementById('citizenNavTabs').style.display = 'none';
       document.getElementById('adminNavTabs').style.display = 'flex';
@@ -1045,13 +1115,24 @@
       document.getElementById('portalHeroTitle').textContent = '🛡️ ศูนย์บัญชาการสำรวจความเสียหายและอนุมัติงบเยียวยา';
       document.getElementById('portalHeroSubtitle').textContent = 'สำหรับเจ้าหน้าที่ตรวจประเมินความเสียหายภาคสนาม อนุมัติวงเงิน และส่งออกไฟล์โอนเงินธนาคาร';
 
-      switchAdminView('officerView', document.getElementById('adminTab1Btn'));
-      showBannerMessage('เข้าสู่ระบบผู้ช่วยเหลือ (แอดมิน) สำเร็จ', false);
+      const targetView = (initialAdminViewId === 'financeView') ? 'financeView' : 'officerView';
+      const targetTabBtn = (targetView === 'financeView')
+        ? document.getElementById('adminTab2Btn')
+        : document.getElementById('adminTab1Btn');
+
+      switchAdminView(targetView, targetTabBtn);
+      if (showWelcomeBanner) {
+        showBannerMessage('เข้าสู่ระบบผู้ช่วยเหลือ (แอดมิน) สำเร็จ', false);
+      }
     }
 
     function logoutAdminPortal() {
       activeAdminPasscode = '';
       isAdminAuthenticated = false;
+
+      removeStorageValue(STORAGE_KEYS.PORTAL_MODE);
+      removeStorageValue(STORAGE_KEYS.ADMIN_PASSCODE);
+      saveStorageValue(STORAGE_KEYS.ACTIVE_VIEW, 'intakeView');
 
       document.getElementById('adminNavTabs').style.display = 'none';
       document.getElementById('citizenNavTabs').style.display = 'flex';
@@ -1063,9 +1144,52 @@
       document.getElementById('portalHeroTitle').textContent = '🌊 ระบบลงทะเบียนและช่วยเหลือเยียวยาผู้ประสบอุทกภัย';
       document.getElementById('portalHeroSubtitle').textContent = 'สำหรับประชาชนยื่นคำร้องขอรับความช่วยเหลือฉุกเฉิน และติดตามสถานะการโอนเงินเยียวยา';
 
-      const citizenFirstTab = document.querySelector('#citizenNavTabs .tab-btn');
-      switchCitizenView('intakeView', citizenFirstTab);
+      switchCitizenView('intakeView', document.getElementById('citizenTabIntake'));
       showBannerMessage('ออกจากระบบแอดมินเรียบร้อยแล้ว กลับสู่หน้าบริการประชาชน', false);
+    }
+
+    function restorePersistedPortalState() {
+      const savedFilter = readStorageValue(STORAGE_KEYS.TIER_FILTER);
+      if (savedFilter) {
+        const filterSelect = document.getElementById('tierFilterSelect');
+        if (filterSelect) {
+          filterSelect.value = savedFilter;
+        }
+      }
+
+      const savedMode = readStorageValue(STORAGE_KEYS.PORTAL_MODE);
+      const savedPasscode = readStorageValue(STORAGE_KEYS.ADMIN_PASSCODE);
+      const savedView = readStorageValue(STORAGE_KEYS.ACTIVE_VIEW);
+
+      if (savedMode === 'ADMIN' && savedPasscode) {
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(function (authOutcome) {
+              if (authOutcome && authOutcome.authorized) {
+                activateAdminPortal(savedPasscode, savedView, false);
+              } else {
+                logoutAdminPortal();
+              }
+            })
+            .withFailureHandler(function () {
+              logoutAdminPortal();
+            })
+            .verifyAdminLogin(savedPasscode);
+        } else {
+          activateAdminPortal(savedPasscode, savedView, false);
+        }
+        return;
+      }
+
+      if (savedView === 'trackingView') {
+        switchCitizenView('trackingView', document.getElementById('citizenTabTrack'));
+      }
+    }
+
+    function handleTierFilterChange() {
+      const selectedTier = document.getElementById('tierFilterSelect').value;
+      saveStorageValue(STORAGE_KEYS.TIER_FILTER, selectedTier);
+      renderOfficerTable();
     }
 
     function showBannerMessage(messageText, isError) {
@@ -1076,6 +1200,18 @@
       bannerEl.style.border = '1.5px solid ' + (isError ? 'var(--tier-red-border)' : 'var(--tier-green-border)');
       bannerEl.textContent = messageText;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function sanitizeDigitsInput(inputEl, maxDigits) {
+      const cleaned = String(inputEl.value || '').replace(/\D/g, '').slice(0, maxDigits);
+      if (inputEl.value !== cleaned) {
+        inputEl.value = cleaned;
+      }
+    }
+
+    function handleNationalIdInput(inputEl) {
+      sanitizeDigitsInput(inputEl, 13);
+      checkNationalIdLive(inputEl.value);
     }
 
     function verifyThaiNationalIdClient(rawId) {
@@ -1220,6 +1356,7 @@
             submitBtn.disabled = false;
             submitBtn.textContent = '📨 ยืนยันการส่งคำร้องขอรับเงินเยียวยา';
             document.getElementById('floodRegistrationForm').reset();
+            checkNationalIdLive('');
             recalculateLiveTriage();
             showBannerMessage(
               'บันทึกคำร้องสำเร็จ! รหัสคำร้อง: ' + createdOutcome.requestId +
@@ -1241,6 +1378,11 @@
       }
     }
 
+    function handleTrackingFormSubmit(submitEvent) {
+      submitEvent.preventDefault();
+      searchTrackingRecords();
+    }
+
     function searchTrackingRecords() {
       const keyword = document.getElementById('trackingQueryInput').value.trim();
       const container = document.getElementById('trackingResultsContainer');
@@ -1260,8 +1402,9 @@
           })
           .findRegistrationByKeyword(keyword);
       } else {
+        const cleanDigits = keyword.replace(/\D/g, '');
         const localMatches = cachedRegistrations.filter(function (item) {
-          return item.requestId === keyword || item.citizenId === keyword;
+          return item.requestId === keyword || (cleanDigits.length === 13 && item.citizenId === cleanDigits);
         });
         renderTrackingCards(localMatches);
       }
@@ -1278,13 +1421,19 @@
       for (let i = 0; i < matchedRows.length; i++) {
         const rec = matchedRows[i];
         const tierClass = getTierBadgeClass(rec.priorityTier);
+        const remedyText = (Number(rec.approvedRemedyThb) > 0)
+          ? '<span style="color: var(--tier-green-text); font-weight: 700;">' + Number(rec.approvedRemedyThb).toLocaleString() + ' บาท</span>'
+          : 'อยู่ระหว่างรอการประเมินวงเงิน';
+
         htmlBuffer += '<div style="padding: 18px; border: 1.5px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; background: var(--bg-subtle);">' +
           '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
           '<strong style="font-size:1.05rem; color:var(--hydro-navy);">รหัสคำร้อง: ' + rec.requestId + ' — ' + rec.fullname + '</strong>' +
-          '<span class="badge ' + tierClass + '">สถานะ: ' + rec.claimStatus + '</span>' +
+          '<span class="badge ' + tierClass + '">สถานะคำร้อง: ' + rec.claimStatus + '</span>' +
           '</div>' +
           '<div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 8px;">' +
-          '📍 ตำบล: ' + rec.subdistrict + ' | ระดับความเร่งด่วน: <strong>' + rec.priorityTier + '</strong> (' + rec.priorityScore + ' คะแนน) | ยื่นเมื่อ: ' + rec.createdAt +
+          '📍 พื้นที่: ' + (rec.addressText || ('ต.' + rec.subdistrict)) +
+          ' | ระดับความเร่งด่วน: <strong>' + rec.priorityTier + '</strong> (' + rec.priorityScore + ' คะแนน)' +
+          '<br>💰 วงเงินเยียวยาที่ได้รับอนุมัติ: ' + remedyText + ' | ยื่นเมื่อ: ' + rec.createdAt +
           '</div></div>';
       }
       container.innerHTML = htmlBuffer;
@@ -1339,16 +1488,51 @@
       return 'badge-green';
     }
 
+    function buildVulnerabilityTags(rec) {
+      let tags = '';
+      if (rec.isBedridden === 'มีผู้ป่วยติดเตียง') {
+        tags += '<span class="mini-tag" style="background:var(--tier-red-bg); color:var(--tier-red-text);">🛏️ ติดเตียง</span>';
+      }
+      if (Number(rec.elderlyCount) > 0) {
+        tags += '<span class="mini-tag">👴 สูงอายุ ' + rec.elderlyCount + '</span>';
+      }
+      if (Number(rec.childCount) > 0) {
+        tags += '<span class="mini-tag">👶 เด็ก ' + rec.childCount + '</span>';
+      }
+      if (rec.isIsolated === 'ถูกตัดขาด') {
+        tags += '<span class="mini-tag" style="background:var(--tier-yellow-bg); color:var(--tier-yellow-text);">🚣 ถูกตัดขาด</span>';
+      }
+      return tags;
+    }
+
+    function buildEvidenceLinksHtml(rec) {
+      let links = '';
+      if (rec.gpsLat && rec.gpsLng) {
+        const mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(rec.gpsLat + ',' + rec.gpsLng);
+        links += '<a href="' + mapsUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--hydro-blue); font-weight:600;">📍 แผนที่ GPS</a>';
+      }
+      if (rec.evidenceFolderUrl) {
+        links += '<a href="' + rec.evidenceFolderUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--hydro-blue); font-weight:600;">📷 รูปหลักฐาน</a>';
+      }
+      return links;
+    }
+
     function renderOfficerTable() {
       const tbody = document.getElementById('officerTableBody');
       const filterTier = document.getElementById('tierFilterSelect').value;
+      const searchBox = document.getElementById('adminSearchInput');
+      const searchKeyword = searchBox ? searchBox.value.trim().toLowerCase() : '';
 
       const filteredList = cachedRegistrations.filter(function (rowItem) {
-        return filterTier === 'ALL' || rowItem.priorityTier === filterTier;
+        const matchesTier = filterTier === 'ALL' || rowItem.priorityTier === filterTier;
+        if (!matchesTier) return false;
+        if (!searchKeyword) return true;
+        const combinedText = (rowItem.requestId + ' ' + rowItem.fullname + ' ' + rowItem.addressText + ' ' + rowItem.citizenId).toLowerCase();
+        return combinedText.indexOf(searchKeyword) !== -1;
       });
 
       if (filteredList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">ไม่พบรายการคำร้อง</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">ไม่พบรายการคำร้องที่ตรงกับเงื่อนไข</td></tr>';
         return;
       }
 
@@ -1356,13 +1540,17 @@
       for (let i = 0; i < filteredList.length; i++) {
         const rec = filteredList[i];
         const tierClass = getTierBadgeClass(rec.priorityTier);
+        const amountLabel = (Number(rec.approvedRemedyThb) > 0)
+          ? '<br><small style="color:var(--tier-green-text); font-weight:600;">อนุมัติ: ' + Number(rec.approvedRemedyThb).toLocaleString() + ' ฿</small>'
+          : '';
+
         rowsHtml += '<tr>' +
-          '<td><strong>' + rec.requestId + '</strong></td>' +
-          '<td><strong>' + rec.fullname + '</strong><br><small style="color:var(--text-secondary);">📞 ' + rec.phoneNumber + '</small></td>' +
-          '<td>' + rec.addressText + '</td>' +
+          '<td><strong>' + rec.requestId + '</strong><br><small style="color:var(--text-secondary);">' + rec.createdAt + '</small></td>' +
+          '<td><strong>' + rec.fullname + '</strong><br><small style="color:var(--text-secondary);">📞 ' + rec.phoneNumber + '</small><br>' + buildVulnerabilityTags(rec) + '</td>' +
+          '<td>' + rec.addressText + '<br>' + buildEvidenceLinksHtml(rec) + '</td>' +
           '<td><strong>' + rec.waterDepthCm + ' ซม.</strong></td>' +
           '<td><span class="badge ' + tierClass + '">' + rec.priorityTier + ' (' + rec.priorityScore + ')</span></td>' +
-          '<td><strong>' + rec.claimStatus + '</strong></td>' +
+          '<td><strong>' + rec.claimStatus + '</strong>' + amountLabel + '</td>' +
           '<td><button class="btn-secondary" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">📝 สำรวจ/อนุมัติ</button></td>' +
           '</tr>';
       }
@@ -1556,6 +1744,7 @@
     }
 
     recalculateLiveTriage();
+    restorePersistedPortalState();
   </script>
 </body>
 </html>
