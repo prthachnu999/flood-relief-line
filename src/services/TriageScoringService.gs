@@ -2,7 +2,11 @@ const REMEDY_RATES_THB = {
   PARTIAL_MINOR: 15000,
   PARTIAL_SEVERE: 30000,
   TOTAL_COLLAPSE: 49500,
-  INELIGIBLE: 0
+  INELIGIBLE: 0,
+  'เสียหายบางส่วน (น้อย)': 15000,
+  'เสียหายบางส่วน (หนัก)': 30000,
+  'เสียหายทั้งหลัง': 49500,
+  'ไม่เข้าเกณฑ์เยียวยา': 0
 };
 
 function calculateWaterDepthScore(waterDepthCm) {
@@ -35,12 +39,12 @@ function calculateHouseholdVulnerabilityScore(isBedridden, elderlyCount, childCo
 
 function resolvePriorityTier(totalPriorityScore) {
   if (totalPriorityScore >= 70) {
-    return 'RED';
+    return PRIORITY_TIERS_TH.RED;
   }
   if (totalPriorityScore >= 40) {
-    return 'YELLOW';
+    return PRIORITY_TIERS_TH.YELLOW;
   }
-  return 'GREEN';
+  return PRIORITY_TIERS_TH.GREEN;
 }
 
 function evaluateVulnerabilityTriage(registrationRecord) {

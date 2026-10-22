@@ -1,27 +1,52 @@
+function formatThaiTimestamp() {
+  const nowDate = new Date();
+  if (typeof Utilities !== 'undefined' && Utilities.formatDate) {
+    return Utilities.formatDate(nowDate, 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
+  }
+  return nowDate.toISOString();
+}
+
 function generateNextSequentialId(targetSheet, idPrefix) {
   const currentRowCount = targetSheet.getLastRow();
   const nextSequenceNumber = Math.max(1, currentRowCount);
   const paddedDigits = ('00000' + nextSequenceNumber).slice(-5);
-  return idPrefix + '-2026-' + paddedDigits;
+  return idPrefix + '-2569-' + paddedDigits;
 }
 
-function appendAuditLogEntry(spreadsheet, targetEntityId, actionType, actorEmail, previousState, updatedState) {
-  const auditSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_audit_logs.sheetName);
+function writeFormattedSheetRow(targetSheet, rowValues, textColumnIndices) {
+  const targetRowNumber = targetSheet.getLastRow() + 1;
+  const targetRange = targetSheet.getRange(targetRowNumber, 1, 1, rowValues.length);
+
+  if (textColumnIndices && textColumnIndices.length > 0) {
+    for (let idx = 0; idx < textColumnIndices.length; idx++) {
+      const colNumber = textColumnIndices[idx];
+      targetSheet.getRange(targetRowNumber, colNumber, 1, 1).setNumberFormat('@');
+    }
+  }
+
+  targetRange.setValues([rowValues]);
+}
+
+function appendAuditLogEntry(spreadsheet, targetEntityId, actionType, actorName, previousState, updatedState) {
+  const auditSchema = TABLE_SCHEMAS.tbl_audit_logs;
+  const auditSheet = spreadsheet.getSheetByName(auditSchema.sheetName);
   if (!auditSheet) {
     return;
   }
 
   const logId = generateNextSequentialId(auditSheet, 'LOG');
-  const isoTimestamp = new Date().toISOString();
-  auditSheet.appendRow([
+  const thaiTime = formatThaiTimestamp();
+  const auditRow = [
     logId,
     targetEntityId,
     actionType,
-    actorEmail || 'PUBLIC_PORTAL',
+    actorName || 'ระบบรับคำร้องออนไลน์',
     previousState,
     updatedState,
-    isoTimestamp
-  ]);
+    thaiTime
+  ];
+
+  writeFormattedSheetRow(auditSheet, auditRow, auditSchema.textFormatColumnIndices);
 }
 
 function validateSubmissionFields(submissionForm) {
@@ -44,13 +69,13 @@ function uploadRegistrationEvidence(requestId, submissionForm) {
   const folderRecord = createRequestEvidenceFolder(requestId);
   const housePhotoUrl = saveBase64EvidenceImage(
     folderRecord.folderId,
-    'house_damage',
+    'ภาพบ้านเสียหาย',
     submissionForm.photoHouseBase64,
     submissionForm.photoHouseMime
   );
   const waterPhotoUrl = saveBase64EvidenceImage(
     folderRecord.folderId,
-    'water_level',
+    'ภาพระดับน้ำท่วม',
     submissionForm.photoWaterBase64,
     submissionForm.photoWaterMime
   );
@@ -70,7 +95,8 @@ function submitCitizenRegistration(submissionForm) {
 
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
+    const regSchema = TABLE_SCHEMAS.tbl_registrations;
+    const regSheet = spreadsheet.getSheetByName(regSchema.sheetName);
     const duplicateCheck = detectDuplicateRegistration(
       regSheet,
       submissionForm.citizenId,
@@ -81,9 +107,11 @@ function submitCitizenRegistration(submissionForm) {
 
     const requestId = generateNextSequentialId(regSheet, 'REQ');
     const triageEvaluation = evaluateVulnerabilityTriage(submissionForm);
-    const initialStatus = duplicateCheck.isDuplicate ? 'DUPLICATE_HOLD' : 'PENDING';
+    const initialStatus = duplicateCheck.isDuplicate
+      ? CLAIM_STATUS_TH.DUPLICATE_HOLD
+      : CLAIM_STATUS_TH.PENDING;
     const evidenceLinks = uploadRegistrationEvidence(requestId, submissionForm);
-    const createdTimestamp = new Date().toISOString();
+    const createdTimestamp = formatThaiTimestamp();
 
     const newRowValues = [
       requestId,
@@ -98,10 +126,10 @@ function submitCitizenRegistration(submissionForm) {
       String(submissionForm.province || '').trim(),
       sanitizeNumericDigits(submissionForm.promptpayNumber),
       Number(submissionForm.waterDepthCm) || 0,
-      Boolean(submissionForm.isBedridden),
+      submissionForm.isBedridden ? 'มีผู้ป่วยติดเตียง' : 'ไม่มี',
       Number(submissionForm.elderlyCount) || 0,
       Number(submissionForm.childCount) || 0,
-      Boolean(submissionForm.isIsolated),
+      submissionForm.isIsolated ? 'ถูกตัดขาด' : 'เข้าถึงได้',
       String(submissionForm.gpsLat || ''),
       String(submissionForm.gpsLng || ''),
       evidenceLinks.folderUrl,
@@ -112,8 +140,8 @@ function submitCitizenRegistration(submissionForm) {
       initialStatus
     ];
 
-    regSheet.appendRow(newRowValues);
-    appendAuditLogEntry(spreadsheet, requestId, 'CREATE_REGISTRATION', 'CITIZEN_PORTAL', 'NONE', initialStatus);
+    writeFormattedSheetRow(regSheet, newRowValues, regSchema.textFormatColumnIndices);
+    appendAuditLogEntry(spreadsheet, requestId, 'ยื่นคำร้องผู้ประสบภัย', 'ระบบออนไลน์', '-', initialStatus);
 
     return {
       requestId: requestId,
@@ -127,10 +155,18 @@ function submitCitizenRegistration(submissionForm) {
   }
 }
 
+function resolveThaiDamageLabel(damageInput) {
+  if (DAMAGE_CATEGORY_TH[damageInput]) {
+    return DAMAGE_CATEGORY_TH[damageInput];
+  }
+  return damageInput;
+}
+
 function recordFieldAssessment(assessmentInput) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
-  const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
+  const assessmentSchema = TABLE_SCHEMAS.tbl_assessments;
+  const assessmentSheet = spreadsheet.getSheetByName(assessmentSchema.sheetName);
 
   const matchedRowIndex = findRegistrationRowIndexById(regSheet, assessmentInput.requestId);
   if (matchedRowIndex === -1) {
@@ -138,20 +174,24 @@ function recordFieldAssessment(assessmentInput) {
   }
 
   const assessmentId = generateNextSequentialId(assessmentSheet, 'ASM');
-  const approvedAmountThb = computeApprovedRemedyAmount(assessmentInput.damageCategory);
-  const updatedClaimStatus = assessmentInput.damageCategory === 'INELIGIBLE' ? 'REJECTED' : 'APPROVED';
-  const assessedTimestamp = new Date().toISOString();
+  const thaiDamageLabel = resolveThaiDamageLabel(assessmentInput.damageCategory);
+  const approvedAmountThb = computeApprovedRemedyAmount(thaiDamageLabel);
+  const isRejected = thaiDamageLabel === DAMAGE_CATEGORY_TH.INELIGIBLE;
+  const updatedClaimStatus = isRejected ? CLAIM_STATUS_TH.REJECTED : CLAIM_STATUS_TH.APPROVED;
+  const assessedTimestamp = formatThaiTimestamp();
 
-  assessmentSheet.appendRow([
+  const assessmentRow = [
     assessmentId,
     assessmentInput.requestId,
-    assessmentInput.inspectorOfficerId || 'OFFICER_DEFAULT',
-    assessmentInput.damageCategory,
+    assessmentInput.inspectorOfficerId || 'เจ้าหน้าที่สำรวจภาคสนาม',
+    thaiDamageLabel,
     approvedAmountThb,
-    Boolean(assessmentInput.reliefPackDelivered),
+    assessmentInput.reliefPackDelivered ? 'มอบถุงยังชีพแล้ว' : 'ยังไม่ได้มอบ',
     String(assessmentInput.inspectorNotes || ''),
     assessedTimestamp
-  ]);
+  ];
+
+  writeFormattedSheetRow(assessmentSheet, assessmentRow, assessmentSchema.textFormatColumnIndices);
 
   const statusCell = regSheet.getRange(matchedRowIndex, 24);
   const previousStatus = statusCell.getValue();
@@ -160,8 +200,8 @@ function recordFieldAssessment(assessmentInput) {
   appendAuditLogEntry(
     spreadsheet,
     assessmentInput.requestId,
-    'FIELD_ASSESSMENT',
-    assessmentInput.inspectorOfficerId,
+    'ประเมินความเสียหายภาคสนาม',
+    assessmentInput.inspectorOfficerId || 'เจ้าหน้าที่สำรวจ',
     previousStatus,
     updatedClaimStatus
   );
@@ -223,11 +263,14 @@ function findRegistrationByKeyword(searchKeyword) {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    formatThaiTimestamp,
     generateNextSequentialId,
+    writeFormattedSheetRow,
     appendAuditLogEntry,
     validateSubmissionFields,
     uploadRegistrationEvidence,
     submitCitizenRegistration,
+    resolveThaiDamageLabel,
     recordFieldAssessment,
     findRegistrationRowIndexById,
     findRegistrationByKeyword

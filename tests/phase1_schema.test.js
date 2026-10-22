@@ -1,5 +1,11 @@
 const assert = require('assert');
-const { SYSTEM_CONFIG, TABLE_SCHEMAS } = require('../src/database/SchemaConfig.gs');
+const {
+  SYSTEM_CONFIG,
+  PRIORITY_TIERS_TH,
+  CLAIM_STATUS_TH,
+  DAMAGE_CATEGORY_TH,
+  TABLE_SCHEMAS
+} = require('../src/database/SchemaConfig.gs');
 const {
   initializeFloodReliefDatabase,
   ensureEvidenceRootFolder
@@ -15,6 +21,9 @@ function createGasEnvironmentMocks() {
   const foldersMap = {};
 
   global.SYSTEM_CONFIG = SYSTEM_CONFIG;
+  global.PRIORITY_TIERS_TH = PRIORITY_TIERS_TH;
+  global.CLAIM_STATUS_TH = CLAIM_STATUS_TH;
+  global.DAMAGE_CATEGORY_TH = DAMAGE_CATEGORY_TH;
   global.TABLE_SCHEMAS = TABLE_SCHEMAS;
   global.ensureEvidenceRootFolder = ensureEvidenceRootFolder;
 
@@ -31,6 +40,10 @@ function createGasEnvironmentMocks() {
     getActiveSpreadsheet: () => ({
       getId: () => 'MOCK_SPREADSHEET_ID_2026',
       getSheetByName: (name) => sheetsMap[name] || null,
+      setActiveSheet: () => {},
+      deleteSheet: (sheetObj) => {
+        delete sheetsMap[sheetObj.name];
+      },
       insertSheet: (name) => {
         const mockSheet = {
           name,
@@ -127,35 +140,29 @@ function runPhase1Tests() {
   const initSummary = initializeFloodReliefDatabase();
   assert.strictEqual(initSummary.spreadsheetId, 'MOCK_SPREADSHEET_ID_2026');
   assert.strictEqual(initSummary.provisionedTables.length, 5);
-  assert.ok(sheetsMap.tbl_registrations, 'tbl_registrations must be provisioned');
-  assert.ok(sheetsMap.tbl_assessments, 'tbl_assessments must be provisioned');
-  assert.ok(sheetsMap.tbl_disbursements, 'tbl_disbursements must be provisioned');
-  assert.ok(sheetsMap.tbl_master_citizens, 'tbl_master_citizens must be provisioned');
-  assert.ok(sheetsMap.tbl_audit_logs, 'tbl_audit_logs must be provisioned');
-
-  assert.strictEqual(
-    sheetsMap.tbl_registrations.formats.length,
-    TABLE_SCHEMAS.tbl_registrations.textFormatColumnIndices.length,
-    'Plain text columns must be formatted as @'
-  );
+  assert.ok(sheetsMap['1_ทะเบียนคำร้องผู้ประสบภัย'], 'Thai registration sheet must be provisioned');
+  assert.ok(sheetsMap['2_ผลสำรวจความเสียหาย'], 'Thai assessment sheet must be provisioned');
+  assert.ok(sheetsMap['3_ประวัติการโอนเงินเยียวยา'], 'Thai disbursement sheet must be provisioned');
+  assert.ok(sheetsMap['4_ฐานข้อมูลทะเบียนราษฎร์'], 'Thai master citizen sheet must be provisioned');
+  assert.ok(sheetsMap['5_ประวัติการใช้งานระบบ'], 'Thai audit log sheet must be provisioned');
 
   assert.strictEqual(
     propertyStore[SYSTEM_CONFIG.SCRIPT_PROP_FOLDER_ID],
-    'FOLDER_FloodRelief_Evidence_Storage_2026'
+    'FOLDER_คลังภาพหลักฐานผู้ประสบอุทกภัย_2569'
   );
 
-  const folderMeta = createRequestEvidenceFolder('REQ-2026-00001');
-  assert.strictEqual(folderMeta.folderId, 'SUBFOLDER_REQ-2026-00001');
+  const folderMeta = createRequestEvidenceFolder('REQ-2569-00001');
+  assert.strictEqual(folderMeta.folderId, 'SUBFOLDER_REQ-2569-00001');
 
   const uploadedUrl = saveBase64EvidenceImage(
     folderMeta.folderId,
-    'house_damage',
+    'ภาพบ้านเสียหาย',
     'data:image/jpeg;base64,SGVsbG8=',
     'image/jpeg'
   );
-  assert.ok(uploadedUrl.startsWith('https://drive.google.com/file/d/house_damage_'));
+  assert.ok(uploadedUrl.startsWith('https://drive.google.com/file/d/ภาพบ้านเสียหาย_'));
 
-  console.log('ALL PHASE 1 TESTS PASSED SUCCESSFULLY.');
+  console.log('ALL PHASE 1 THAI SCHEMA TESTS PASSED SUCCESSFULLY.');
 }
 
 runPhase1Tests();

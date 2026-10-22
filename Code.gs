@@ -1,122 +1,188 @@
 const SYSTEM_CONFIG = {
-  DRIVE_ROOT_FOLDER_NAME: 'FloodRelief_Evidence_Storage_2026',
+  DRIVE_ROOT_FOLDER_NAME: 'คลังภาพหลักฐานผู้ประสบอุทกภัย_2569',
   SCRIPT_PROP_FOLDER_ID: 'EVIDENCE_ROOT_FOLDER_ID',
   HEADER_BG_COLOR: '#1E293B',
-  HEADER_TEXT_COLOR: '#F8FAFC'
+  HEADER_TEXT_COLOR: '#F8FAFC',
+  LEGACY_SHEET_NAMES: [
+    'tbl_registrations',
+    'tbl_assessments',
+    'tbl_disbursements',
+    'tbl_master_citizens',
+    'tbl_audit_logs'
+  ]
+};
+
+const PRIORITY_TIERS_TH = {
+  RED: 'วิกฤตเร่งด่วน (สีแดง)',
+  YELLOW: 'ปานกลาง (สีเหลือง)',
+  GREEN: 'ทั่วไป (สีเขียว)'
+};
+
+const CLAIM_STATUS_TH = {
+  PENDING: 'รอตรวจสอบ',
+  DUPLICATE_HOLD: 'พักตรวจสอบ (ข้อมูลซ้ำ)',
+  INSPECTED: 'สำรวจพื้นที่แล้ว',
+  APPROVED: 'อนุมัติเยียวยา',
+  REJECTED: 'ไม่อนุมัติ',
+  PAID: 'โอนเงินสำเร็จ'
+};
+
+const DAMAGE_CATEGORY_TH = {
+  PARTIAL_MINOR: 'เสียหายบางส่วน (น้อย)',
+  PARTIAL_SEVERE: 'เสียหายบางส่วน (หนัก)',
+  TOTAL_COLLAPSE: 'เสียหายทั้งหลัง',
+  INELIGIBLE: 'ไม่เข้าเกณฑ์เยียวยา'
 };
 
 const REMEDY_RATES_THB = {
   PARTIAL_MINOR: 15000,
   PARTIAL_SEVERE: 30000,
   TOTAL_COLLAPSE: 49500,
-  INELIGIBLE: 0
+  INELIGIBLE: 0,
+  'เสียหายบางส่วน (น้อย)': 15000,
+  'เสียหายบางส่วน (หนัก)': 30000,
+  'เสียหายทั้งหลัง': 49500,
+  'ไม่เข้าเกณฑ์เยียวยา': 0
 };
 
 const TABLE_SCHEMAS = {
   tbl_registrations: {
-    sheetName: 'tbl_registrations',
+    sheetName: '1_ทะเบียนคำร้องผู้ประสบภัย',
     tabColor: '#EF4444',
-    textFormatColumnIndices: [3, 5, 6, 7, 11],
+    textFormatColumnIndices: [1, 2, 3, 5, 6, 7, 11, 17, 18],
     headers: [
-      'request_id',
-      'created_at',
-      'citizen_id',
-      'fullname',
-      'phone_number',
-      'house_no',
-      'village_no',
-      'subdistrict',
-      'district',
-      'province',
-      'promptpay_number',
-      'water_depth_cm',
-      'is_bedridden',
-      'elderly_count',
-      'child_count',
-      'is_isolated',
-      'gps_lat',
-      'gps_lng',
-      'evidence_folder_url',
-      'photo_house_url',
-      'photo_water_url',
-      'priority_score',
-      'priority_tier',
-      'claim_status'
+      'รหัสคำร้อง',
+      'วันเวลาที่ยื่นเรื่อง',
+      'เลขบัตรประชาชน (13 หลัก)',
+      'ชื่อ-นามสกุล',
+      'เบอร์โทรศัพท์',
+      'บ้านเลขที่',
+      'หมู่ที่',
+      'ตำบล',
+      'อำเภอ',
+      'จังหวัด',
+      'เลขบัญชีพร้อมเพย์',
+      'ระดับน้ำท่วม (ซม.)',
+      'ผู้ป่วยติดเตียง',
+      'จำนวนผู้สูงอายุ (คน)',
+      'จำนวนเด็กเล็ก (คน)',
+      'พื้นที่ถูกตัดขาด',
+      'พิกัดละติจูด (Lat)',
+      'พิกัดลองจิจูด (Lng)',
+      'โฟลเดอร์หลักฐาน (Drive)',
+      'ลิงก์ภาพบ้านเสียหาย',
+      'ลิงก์ภาพระดับน้ำ',
+      'คะแนนความเร่งด่วน',
+      'ระดับความเร่งด่วน',
+      'สถานะคำร้อง'
     ],
     dropdownValidations: [
-      { columnIndex: 23, allowedValues: ['RED', 'YELLOW', 'GREEN'] },
-      { columnIndex: 24, allowedValues: ['PENDING', 'DUPLICATE_HOLD', 'INSPECTED', 'APPROVED', 'REJECTED', 'PAID'] }
+      {
+        columnIndex: 23,
+        allowedValues: [
+          PRIORITY_TIERS_TH.RED,
+          PRIORITY_TIERS_TH.YELLOW,
+          PRIORITY_TIERS_TH.GREEN
+        ]
+      },
+      {
+        columnIndex: 24,
+        allowedValues: [
+          CLAIM_STATUS_TH.PENDING,
+          CLAIM_STATUS_TH.DUPLICATE_HOLD,
+          CLAIM_STATUS_TH.INSPECTED,
+          CLAIM_STATUS_TH.APPROVED,
+          CLAIM_STATUS_TH.REJECTED,
+          CLAIM_STATUS_TH.PAID
+        ]
+      }
     ]
   },
 
   tbl_assessments: {
-    sheetName: 'tbl_assessments',
+    sheetName: '2_ผลสำรวจความเสียหาย',
     tabColor: '#F59E0B',
-    textFormatColumnIndices: [1, 2, 3],
+    textFormatColumnIndices: [1, 2, 3, 8],
     headers: [
-      'assessment_id',
-      'request_id',
-      'inspector_officer_id',
-      'damage_category',
-      'approved_remedy_thb',
-      'relief_pack_delivered',
-      'inspector_notes',
-      'assessed_at'
+      'รหัสการประเมิน',
+      'รหัสคำร้องอ้างอิง',
+      'รหัสเจ้าหน้าที่ผู้สำรวจ',
+      'ระดับความเสียหาย',
+      'วงเงินเยียวยาที่อนุมัติ (บาท)',
+      'การมอบถุงยังชีพ',
+      'บันทึกการตรวจสอบภาคสนาม',
+      'วันเวลาที่ประเมิน'
     ],
     dropdownValidations: [
-      { columnIndex: 4, allowedValues: ['PARTIAL_MINOR', 'PARTIAL_SEVERE', 'TOTAL_COLLAPSE', 'INELIGIBLE'] }
+      {
+        columnIndex: 4,
+        allowedValues: [
+          DAMAGE_CATEGORY_TH.PARTIAL_MINOR,
+          DAMAGE_CATEGORY_TH.PARTIAL_SEVERE,
+          DAMAGE_CATEGORY_TH.TOTAL_COLLAPSE,
+          DAMAGE_CATEGORY_TH.INELIGIBLE
+        ]
+      }
     ]
   },
 
   tbl_disbursements: {
-    sheetName: 'tbl_disbursements',
+    sheetName: '3_ประวัติการโอนเงินเยียวยา',
     tabColor: '#10B981',
-    textFormatColumnIndices: [1, 2, 3, 5],
+    textFormatColumnIndices: [1, 2, 3, 5, 7],
     headers: [
-      'disbursement_id',
-      'request_id',
-      'batch_number',
-      'payment_channel',
-      'transaction_ref',
-      'disbursed_amount_thb',
-      'disbursed_at',
-      'finance_officer_id'
+      'รหัสรายการโอน',
+      'รหัสคำร้องอ้างอิง',
+      'รหัสรอบการจ่าย (Batch)',
+      'ช่องทางการโอนเงิน',
+      'เลขอ้างอิงธุรกรรมธนาคาร',
+      'จำนวนเงินที่โอนจริง (บาท)',
+      'วันเวลาที่โอนเงิน',
+      'เจ้าหน้าที่การเงิน'
     ],
     dropdownValidations: [
-      { columnIndex: 4, allowedValues: ['KTB_PROMPTPAY', 'GOV_SAVINGS_BANK', 'BAAC_TRANSFER', 'CASH_VOUCHER'] }
+      {
+        columnIndex: 4,
+        allowedValues: [
+          'พร้อมเพย์ ธ.กรุงไทย (KTB)',
+          'โอนบัญชี ธ.ออมสิน',
+          'โอนบัญชี ธ.ก.ส.',
+          'เงินสด/เช็คช่วยชาติ'
+        ]
+      }
     ]
   },
 
   tbl_master_citizens: {
-    sheetName: 'tbl_master_citizens',
+    sheetName: '4_ฐานข้อมูลทะเบียนราษฎร์',
     tabColor: '#3B82F6',
     textFormatColumnIndices: [1, 2, 4, 5],
     headers: [
-      'citizen_id',
-      'house_code_11digit',
-      'registered_fullname',
-      'house_no',
-      'village_no',
-      'subdistrict',
-      'district',
-      'province',
-      'is_head_of_household'
+      'เลขบัตรประชาชน (13 หลัก)',
+      'รหัสประจำบ้าน (11 หลัก)',
+      'ชื่อ-นามสกุลตามทะเบียนราษฎร์',
+      'บ้านเลขที่',
+      'หมู่ที่',
+      'ตำบล',
+      'อำเภอ',
+      'จังหวัด',
+      'สถานะเจ้าบ้าน'
     ],
     dropdownValidations: []
   },
 
   tbl_audit_logs: {
-    sheetName: 'tbl_audit_logs',
+    sheetName: '5_ประวัติการใช้งานระบบ',
     tabColor: '#64748B',
-    textFormatColumnIndices: [1, 2],
+    textFormatColumnIndices: [1, 2, 7],
     headers: [
-      'log_id',
-      'target_entity_id',
-      'action_type',
-      'actor_email',
-      'previous_state',
-      'updated_state',
-      'logged_at'
+      'รหัสบันทึก (Log ID)',
+      'รหัสรายการที่เกี่ยวข้อง',
+      'ประเภทการกระทำ',
+      'ผู้ดำเนินการ',
+      'สถานะเดิม',
+      'สถานะใหม่',
+      'วันเวลาที่บันทึก'
     ],
     dropdownValidations: []
   }
@@ -125,7 +191,7 @@ const TABLE_SCHEMAS = {
 function initializeFloodReliefDatabase() {
   const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   if (!activeSpreadsheet) {
-    throw new Error('Active Spreadsheet not found. Bind script to a Google Sheet.');
+    throw new Error('ไม่พบไฟล์ Google Sheet ที่เปิดใช้งานอยู่');
   }
 
   const schemaKeys = Object.keys(TABLE_SCHEMAS);
@@ -133,6 +199,8 @@ function initializeFloodReliefDatabase() {
     const schemaDefinition = TABLE_SCHEMAS[schemaKeys[index]];
     provisionWorksheet(activeSpreadsheet, schemaDefinition);
   }
+
+  cleanupLegacyEnglishSheets(activeSpreadsheet);
 
   const firstTableSheet = activeSpreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
   if (firstTableSheet) {
@@ -145,6 +213,16 @@ function initializeFloodReliefDatabase() {
     evidenceFolderId: rootFolderId,
     provisionedTables: schemaKeys
   };
+}
+
+function cleanupLegacyEnglishSheets(spreadsheet) {
+  const legacyNames = SYSTEM_CONFIG.LEGACY_SHEET_NAMES || [];
+  for (let idx = 0; idx < legacyNames.length; idx++) {
+    const oldSheet = spreadsheet.getSheetByName(legacyNames[idx]);
+    if (oldSheet && typeof spreadsheet.deleteSheet === 'function') {
+      spreadsheet.deleteSheet(oldSheet);
+    }
+  }
 }
 
 function provisionWorksheet(spreadsheet, schemaDefinition) {
@@ -171,7 +249,7 @@ function configureSheetHeaders(targetSheet, headerColumns) {
 
   targetSheet.setFrozenRows(1);
   for (let colIdx = 1; colIdx <= columnCount; colIdx++) {
-    targetSheet.setColumnWidth(colIdx, 155);
+    targetSheet.setColumnWidth(colIdx, 165);
   }
 }
 
@@ -316,12 +394,12 @@ function detectDuplicateRegistration(registrationSheet, citizenId, houseNo, vill
     const rowRecord = existingRows[rowIndex];
     const existingCitizenId = sanitizeNumericDigits(rowRecord[2]);
     if (existingCitizenId === cleanCitizenId) {
-      return { isDuplicate: true, duplicateReason: 'DUPLICATE_CITIZEN_ID' };
+      return { isDuplicate: true, duplicateReason: 'เลขบัตรประชาชนซ้ำในระบบ' };
     }
 
     const existingAddressKey = buildAddressKey(rowRecord[5], rowRecord[6], rowRecord[7]);
     if (normalizedAddressKey && existingAddressKey === normalizedAddressKey) {
-      return { isDuplicate: true, duplicateReason: 'DUPLICATE_HOUSEHOLD_ADDRESS' };
+      return { isDuplicate: true, duplicateReason: 'ครัวเรือนบ้านเลขที่นี้ยื่นคำร้องแล้ว' };
     }
   }
 
@@ -368,12 +446,12 @@ function calculateHouseholdVulnerabilityScore(isBedridden, elderlyCount, childCo
 
 function resolvePriorityTier(totalPriorityScore) {
   if (totalPriorityScore >= 70) {
-    return 'RED';
+    return PRIORITY_TIERS_TH.RED;
   }
   if (totalPriorityScore >= 40) {
-    return 'YELLOW';
+    return PRIORITY_TIERS_TH.YELLOW;
   }
-  return 'GREEN';
+  return PRIORITY_TIERS_TH.GREEN;
 }
 
 function evaluateVulnerabilityTriage(registrationRecord) {
@@ -401,30 +479,55 @@ function computeApprovedRemedyAmount(damageCategory) {
   return REMEDY_RATES_THB[damageCategory];
 }
 
+function formatThaiTimestamp() {
+  const nowDate = new Date();
+  if (typeof Utilities !== 'undefined' && Utilities.formatDate) {
+    return Utilities.formatDate(nowDate, 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
+  }
+  return nowDate.toISOString();
+}
+
 function generateNextSequentialId(targetSheet, idPrefix) {
   const currentRowCount = targetSheet.getLastRow();
   const nextSequenceNumber = Math.max(1, currentRowCount);
   const paddedDigits = ('00000' + nextSequenceNumber).slice(-5);
-  return idPrefix + '-2026-' + paddedDigits;
+  return idPrefix + '-2569-' + paddedDigits;
 }
 
-function appendAuditLogEntry(spreadsheet, targetEntityId, actionType, actorEmail, previousState, updatedState) {
-  const auditSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_audit_logs.sheetName);
+function writeFormattedSheetRow(targetSheet, rowValues, textColumnIndices) {
+  const targetRowNumber = targetSheet.getLastRow() + 1;
+  const targetRange = targetSheet.getRange(targetRowNumber, 1, 1, rowValues.length);
+
+  if (textColumnIndices && textColumnIndices.length > 0) {
+    for (let idx = 0; idx < textColumnIndices.length; idx++) {
+      const colNumber = textColumnIndices[idx];
+      targetSheet.getRange(targetRowNumber, colNumber, 1, 1).setNumberFormat('@');
+    }
+  }
+
+  targetRange.setValues([rowValues]);
+}
+
+function appendAuditLogEntry(spreadsheet, targetEntityId, actionType, actorName, previousState, updatedState) {
+  const auditSchema = TABLE_SCHEMAS.tbl_audit_logs;
+  const auditSheet = spreadsheet.getSheetByName(auditSchema.sheetName);
   if (!auditSheet) {
     return;
   }
 
   const logId = generateNextSequentialId(auditSheet, 'LOG');
-  const isoTimestamp = new Date().toISOString();
-  auditSheet.appendRow([
+  const thaiTime = formatThaiTimestamp();
+  const auditRow = [
     logId,
     targetEntityId,
     actionType,
-    actorEmail || 'PUBLIC_PORTAL',
+    actorName || 'ระบบรับคำร้องออนไลน์',
     previousState,
     updatedState,
-    isoTimestamp
-  ]);
+    thaiTime
+  ];
+
+  writeFormattedSheetRow(auditSheet, auditRow, auditSchema.textFormatColumnIndices);
 }
 
 function validateSubmissionFields(submissionForm) {
@@ -447,13 +550,13 @@ function uploadRegistrationEvidence(requestId, submissionForm) {
   const folderRecord = createRequestEvidenceFolder(requestId);
   const housePhotoUrl = saveBase64EvidenceImage(
     folderRecord.folderId,
-    'house_damage',
+    'ภาพบ้านเสียหาย',
     submissionForm.photoHouseBase64,
     submissionForm.photoHouseMime
   );
   const waterPhotoUrl = saveBase64EvidenceImage(
     folderRecord.folderId,
-    'water_level',
+    'ภาพระดับน้ำท่วม',
     submissionForm.photoWaterBase64,
     submissionForm.photoWaterMime
   );
@@ -473,7 +576,8 @@ function submitCitizenRegistration(submissionForm) {
 
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
+    const regSchema = TABLE_SCHEMAS.tbl_registrations;
+    const regSheet = spreadsheet.getSheetByName(regSchema.sheetName);
     const duplicateCheck = detectDuplicateRegistration(
       regSheet,
       submissionForm.citizenId,
@@ -484,9 +588,11 @@ function submitCitizenRegistration(submissionForm) {
 
     const requestId = generateNextSequentialId(regSheet, 'REQ');
     const triageEvaluation = evaluateVulnerabilityTriage(submissionForm);
-    const initialStatus = duplicateCheck.isDuplicate ? 'DUPLICATE_HOLD' : 'PENDING';
+    const initialStatus = duplicateCheck.isDuplicate
+      ? CLAIM_STATUS_TH.DUPLICATE_HOLD
+      : CLAIM_STATUS_TH.PENDING;
     const evidenceLinks = uploadRegistrationEvidence(requestId, submissionForm);
-    const createdTimestamp = new Date().toISOString();
+    const createdTimestamp = formatThaiTimestamp();
 
     const newRowValues = [
       requestId,
@@ -501,10 +607,10 @@ function submitCitizenRegistration(submissionForm) {
       String(submissionForm.province || '').trim(),
       sanitizeNumericDigits(submissionForm.promptpayNumber),
       Number(submissionForm.waterDepthCm) || 0,
-      Boolean(submissionForm.isBedridden),
+      submissionForm.isBedridden ? 'มีผู้ป่วยติดเตียง' : 'ไม่มี',
       Number(submissionForm.elderlyCount) || 0,
       Number(submissionForm.childCount) || 0,
-      Boolean(submissionForm.isIsolated),
+      submissionForm.isIsolated ? 'ถูกตัดขาด' : 'เข้าถึงได้',
       String(submissionForm.gpsLat || ''),
       String(submissionForm.gpsLng || ''),
       evidenceLinks.folderUrl,
@@ -515,8 +621,8 @@ function submitCitizenRegistration(submissionForm) {
       initialStatus
     ];
 
-    regSheet.appendRow(newRowValues);
-    appendAuditLogEntry(spreadsheet, requestId, 'CREATE_REGISTRATION', 'CITIZEN_PORTAL', 'NONE', initialStatus);
+    writeFormattedSheetRow(regSheet, newRowValues, regSchema.textFormatColumnIndices);
+    appendAuditLogEntry(spreadsheet, requestId, 'ยื่นคำร้องผู้ประสบภัย', 'ระบบออนไลน์', '-', initialStatus);
 
     return {
       requestId: requestId,
@@ -530,10 +636,18 @@ function submitCitizenRegistration(submissionForm) {
   }
 }
 
+function resolveThaiDamageLabel(damageInput) {
+  if (DAMAGE_CATEGORY_TH[damageInput]) {
+    return DAMAGE_CATEGORY_TH[damageInput];
+  }
+  return damageInput;
+}
+
 function recordFieldAssessment(assessmentInput) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
-  const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
+  const assessmentSchema = TABLE_SCHEMAS.tbl_assessments;
+  const assessmentSheet = spreadsheet.getSheetByName(assessmentSchema.sheetName);
 
   const matchedRowIndex = findRegistrationRowIndexById(regSheet, assessmentInput.requestId);
   if (matchedRowIndex === -1) {
@@ -541,20 +655,24 @@ function recordFieldAssessment(assessmentInput) {
   }
 
   const assessmentId = generateNextSequentialId(assessmentSheet, 'ASM');
-  const approvedAmountThb = computeApprovedRemedyAmount(assessmentInput.damageCategory);
-  const updatedClaimStatus = assessmentInput.damageCategory === 'INELIGIBLE' ? 'REJECTED' : 'APPROVED';
-  const assessedTimestamp = new Date().toISOString();
+  const thaiDamageLabel = resolveThaiDamageLabel(assessmentInput.damageCategory);
+  const approvedAmountThb = computeApprovedRemedyAmount(thaiDamageLabel);
+  const isRejected = thaiDamageLabel === DAMAGE_CATEGORY_TH.INELIGIBLE;
+  const updatedClaimStatus = isRejected ? CLAIM_STATUS_TH.REJECTED : CLAIM_STATUS_TH.APPROVED;
+  const assessedTimestamp = formatThaiTimestamp();
 
-  assessmentSheet.appendRow([
+  const assessmentRow = [
     assessmentId,
     assessmentInput.requestId,
-    assessmentInput.inspectorOfficerId || 'OFFICER_DEFAULT',
-    assessmentInput.damageCategory,
+    assessmentInput.inspectorOfficerId || 'เจ้าหน้าที่สำรวจภาคสนาม',
+    thaiDamageLabel,
     approvedAmountThb,
-    Boolean(assessmentInput.reliefPackDelivered),
+    assessmentInput.reliefPackDelivered ? 'มอบถุงยังชีพแล้ว' : 'ยังไม่ได้มอบ',
     String(assessmentInput.inspectorNotes || ''),
     assessedTimestamp
-  ]);
+  ];
+
+  writeFormattedSheetRow(assessmentSheet, assessmentRow, assessmentSchema.textFormatColumnIndices);
 
   const statusCell = regSheet.getRange(matchedRowIndex, 24);
   const previousStatus = statusCell.getValue();
@@ -563,8 +681,8 @@ function recordFieldAssessment(assessmentInput) {
   appendAuditLogEntry(
     spreadsheet,
     assessmentInput.requestId,
-    'FIELD_ASSESSMENT',
-    assessmentInput.inspectorOfficerId,
+    'ประเมินความเสียหายภาคสนาม',
+    assessmentInput.inspectorOfficerId || 'เจ้าหน้าที่สำรวจ',
     previousStatus,
     updatedClaimStatus
   );
@@ -667,8 +785,8 @@ function testSeedSampleFloodData() {
 
   recordFieldAssessment({
     requestId: firstCase.requestId,
-    inspectorOfficerId: 'OFF-KRABI-01',
-    damageCategory: 'PARTIAL_SEVERE',
+    inspectorOfficerId: 'จท-กระบี่-01',
+    damageCategory: 'เสียหายบางส่วน (หนัก)',
     reliefPackDelivered: true,
     inspectorNotes: 'น้ำท่วมสูงเกิน 1.3 เมตร มีผู้ป่วยติดเตียง มอบถุงยังชีพแล้ว อนุมัติเยียวยา 30,000 บาท'
   });

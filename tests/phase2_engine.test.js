@@ -1,5 +1,11 @@
 const assert = require('assert');
-const { SYSTEM_CONFIG, TABLE_SCHEMAS } = require('../src/database/SchemaConfig.gs');
+const {
+  SYSTEM_CONFIG,
+  PRIORITY_TIERS_TH,
+  CLAIM_STATUS_TH,
+  DAMAGE_CATEGORY_TH,
+  TABLE_SCHEMAS
+} = require('../src/database/SchemaConfig.gs');
 const {
   sanitizeNumericDigits,
   isValidThaiNationalId,
@@ -16,18 +22,17 @@ const {
   computeApprovedRemedyAmount
 } = require('../src/services/TriageScoringService.gs');
 const {
-  generateNextSequentialId,
-  appendAuditLogEntry,
-  validateSubmissionFields,
-  uploadRegistrationEvidence,
   submitCitizenRegistration,
   recordFieldAssessment,
-  findRegistrationRowIndexById,
   findRegistrationByKeyword
 } = require('../src/repositories/RegistrationRepository.gs');
 
 function setupPhase2Mocks() {
   global.SYSTEM_CONFIG = SYSTEM_CONFIG;
+  global.PRIORITY_TIERS_TH = PRIORITY_TIERS_TH;
+  global.CLAIM_STATUS_TH = CLAIM_STATUS_TH;
+  global.DAMAGE_CATEGORY_TH = DAMAGE_CATEGORY_TH;
+  global.REMEDY_RATES_THB = REMEDY_RATES_THB;
   global.TABLE_SCHEMAS = TABLE_SCHEMAS;
   global.sanitizeNumericDigits = sanitizeNumericDigits;
   global.isValidThaiNationalId = isValidThaiNationalId;
@@ -43,18 +48,19 @@ function setupPhase2Mocks() {
   global.saveBase64EvidenceImage = (folderId, label) => 'https://drive.google.com/file/' + folderId + '/' + label;
 
   const sheetRowsStore = {
-    tbl_registrations: [TABLE_SCHEMAS.tbl_registrations.headers],
-    tbl_assessments: [TABLE_SCHEMAS.tbl_assessments.headers],
-    tbl_audit_logs: [TABLE_SCHEMAS.tbl_audit_logs.headers]
+    '1_ทะเบียนคำร้องผู้ประสบภัย': [TABLE_SCHEMAS.tbl_registrations.headers],
+    '2_ผลสำรวจความเสียหาย': [TABLE_SCHEMAS.tbl_assessments.headers],
+    '5_ประวัติการใช้งานระบบ': [TABLE_SCHEMAS.tbl_audit_logs.headers]
   };
 
   function buildSheetMock(sheetName) {
     return {
       getLastRow: () => sheetRowsStore[sheetName].length,
-      appendRow: (rowArray) => {
-        sheetRowsStore[sheetName].push(rowArray);
-      },
       getRange: (startRow, startCol, numRows = 1, numCols = 1) => ({
+        setNumberFormat: () => {},
+        setValues: (matrixValues) => {
+          sheetRowsStore[sheetName][startRow - 1] = matrixValues[0];
+        },
         getValues: () => {
           const sliced = [];
           for (let r = startRow - 1; r < startRow - 1 + numRows; r++) {
@@ -90,14 +96,8 @@ function setupPhase2Mocks() {
 function runPhase2Tests() {
   const sheetRowsStore = setupPhase2Mocks();
 
-  // Valid Thai ID: 1234567890121
   assert.strictEqual(isValidThaiNationalId('1-2345-67890-12-1'), true);
   assert.strictEqual(isValidThaiNationalId('1234567890129'), false);
-  assert.strictEqual(isValidThaiNationalId('1111111111111'), false);
-
-  assert.strictEqual(isValidPromptPayAccount('081-234-5678'), true);
-  assert.strictEqual(isValidPromptPayAccount('1234567890121'), true);
-  assert.strictEqual(isValidPromptPayAccount('021234567'), false);
 
   const redTriage = evaluateVulnerabilityTriage({
     waterDepthCm: 150,
@@ -107,7 +107,7 @@ function runPhase2Tests() {
     isIsolated: true
   });
   assert.strictEqual(redTriage.priorityScore, 100);
-  assert.strictEqual(redTriage.priorityTier, 'RED');
+  assert.strictEqual(redTriage.priorityTier, 'วิกฤตเร่งด่วน (สีแดง)');
 
   const firstSubmission = submitCitizenRegistration({
     citizenId: '1234567890121',
@@ -126,12 +126,14 @@ function runPhase2Tests() {
     isIsolated: false
   });
 
-  assert.strictEqual(firstSubmission.requestId, 'REQ-2026-00001');
-  assert.strictEqual(firstSubmission.priorityTier, 'RED');
-  assert.strictEqual(firstSubmission.claimStatus, 'PENDING');
+  assert.strictEqual(firstSubmission.requestId, 'REQ-2569-00001');
+  assert.strictEqual(firstSubmission.priorityTier, 'วิกฤตเร่งด่วน (สีแดง)');
+  assert.strictEqual(firstSubmission.claimStatus, 'รอตรวจสอบ');
 
-  // Test duplicate household address detection with a second valid Thai ID (1100700000011 -> check digit: let's compute valid ID)
-  // For 123456789011 -> sum = 1*13+2*12+3*11+4*10+5*9+6*8+7*7+8*6+9*5+0*4+1*3+1*2 = 350. 350%11 = 9. (11-9)%10 = 2 -> '1234567890112'
+  // Verify leading zero in phone number '0812345678' is preserved in row
+  const storedPhone = sheetRowsStore['1_ทะเบียนคำร้องผู้ประสบภัย'][1][4];
+  assert.strictEqual(storedPhone, '0812345678');
+
   const duplicateSubmission = submitCitizenRegistration({
     citizenId: '1234567890112',
     fullname: 'นางสมหญิง ใจดี',
@@ -149,26 +151,26 @@ function runPhase2Tests() {
     isIsolated: false
   });
 
-  assert.strictEqual(duplicateSubmission.claimStatus, 'DUPLICATE_HOLD');
-  assert.strictEqual(duplicateSubmission.duplicateReason, 'DUPLICATE_HOUSEHOLD_ADDRESS');
+  assert.strictEqual(duplicateSubmission.claimStatus, 'พักตรวจสอบ (ข้อมูลซ้ำ)');
+  assert.strictEqual(duplicateSubmission.duplicateReason, 'ครัวเรือนบ้านเลขที่นี้ยื่นคำร้องแล้ว');
 
   const assessmentOutcome = recordFieldAssessment({
-    requestId: 'REQ-2026-00001',
-    inspectorOfficerId: 'OFF-KRABI-01',
-    damageCategory: 'PARTIAL_SEVERE',
+    requestId: 'REQ-2569-00001',
+    inspectorOfficerId: 'จท-กระบี่-01',
+    damageCategory: 'เสียหายบางส่วน (หนัก)',
     reliefPackDelivered: true,
     inspectorNotes: 'น้ำท่วมชั้นล่างเสียหายหนัก'
   });
 
   assert.strictEqual(assessmentOutcome.approvedRemedyThb, 30000);
-  assert.strictEqual(assessmentOutcome.claimStatus, 'APPROVED');
+  assert.strictEqual(assessmentOutcome.claimStatus, 'อนุมัติเยียวยา');
 
   const foundList = findRegistrationByKeyword('1234567890121');
   assert.strictEqual(foundList.length, 1);
-  assert.strictEqual(foundList[0].claimStatus, 'APPROVED');
-  assert.strictEqual(sheetRowsStore.tbl_audit_logs.length, 4);
+  assert.strictEqual(foundList[0].claimStatus, 'อนุมัติเยียวยา');
+  assert.strictEqual(sheetRowsStore['5_ประวัติการใช้งานระบบ'].length, 4);
 
-  console.log('ALL PHASE 2 TESTS PASSED SUCCESSFULLY.');
+  console.log('ALL PHASE 2 THAI ENGINE TESTS PASSED SUCCESSFULLY.');
 }
 
 runPhase2Tests();

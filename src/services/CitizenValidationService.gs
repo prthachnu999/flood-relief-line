@@ -50,12 +50,12 @@ function detectDuplicateRegistration(registrationSheet, citizenId, houseNo, vill
     const rowRecord = existingRows[rowIndex];
     const existingCitizenId = sanitizeNumericDigits(rowRecord[2]);
     if (existingCitizenId === cleanCitizenId) {
-      return { isDuplicate: true, duplicateReason: 'DUPLICATE_CITIZEN_ID' };
+      return { isDuplicate: true, duplicateReason: 'เลขบัตรประชาชนซ้ำในระบบ' };
     }
 
     const existingAddressKey = buildAddressKey(rowRecord[5], rowRecord[6], rowRecord[7]);
     if (normalizedAddressKey && existingAddressKey === normalizedAddressKey) {
-      return { isDuplicate: true, duplicateReason: 'DUPLICATE_HOUSEHOLD_ADDRESS' };
+      return { isDuplicate: true, duplicateReason: 'ครัวเรือนบ้านเลขที่นี้ยื่นคำร้องแล้ว' };
     }
   }
 

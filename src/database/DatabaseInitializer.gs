@@ -1,7 +1,7 @@
 function initializeFloodReliefDatabase() {
   const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   if (!activeSpreadsheet) {
-    throw new Error('Active Spreadsheet not found. Bind script to a Google Sheet.');
+    throw new Error('ไม่พบไฟล์ Google Sheet ที่เปิดใช้งานอยู่');
   }
 
   const schemaKeys = Object.keys(TABLE_SCHEMAS);
@@ -10,12 +10,29 @@ function initializeFloodReliefDatabase() {
     provisionWorksheet(activeSpreadsheet, schemaDefinition);
   }
 
+  cleanupLegacyEnglishSheets(activeSpreadsheet);
+
+  const firstTableSheet = activeSpreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
+  if (firstTableSheet) {
+    activeSpreadsheet.setActiveSheet(firstTableSheet);
+  }
+
   const rootFolderId = ensureEvidenceRootFolder();
   return {
     spreadsheetId: activeSpreadsheet.getId(),
     evidenceFolderId: rootFolderId,
     provisionedTables: schemaKeys
   };
+}
+
+function cleanupLegacyEnglishSheets(spreadsheet) {
+  const legacyNames = SYSTEM_CONFIG.LEGACY_SHEET_NAMES || [];
+  for (let idx = 0; idx < legacyNames.length; idx++) {
+    const oldSheet = spreadsheet.getSheetByName(legacyNames[idx]);
+    if (oldSheet && typeof spreadsheet.deleteSheet === 'function') {
+      spreadsheet.deleteSheet(oldSheet);
+    }
+  }
 }
 
 function provisionWorksheet(spreadsheet, schemaDefinition) {
@@ -42,7 +59,7 @@ function configureSheetHeaders(targetSheet, headerColumns) {
 
   targetSheet.setFrozenRows(1);
   for (let colIdx = 1; colIdx <= columnCount; colIdx++) {
-    targetSheet.setColumnWidth(colIdx, 155);
+    targetSheet.setColumnWidth(colIdx, 165);
   }
 }
 
@@ -95,6 +112,7 @@ function ensureEvidenceRootFolder() {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     initializeFloodReliefDatabase,
+    cleanupLegacyEnglishSheets,
     provisionWorksheet,
     configureSheetHeaders,
     applyPlainTextColumnFormatting,
