@@ -59,16 +59,44 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }
 
     .hotline-pill {
       background: var(--relief-amber);
       color: hsl(0, 0%, 100%);
       font-weight: 600;
-      padding: 2px 10px;
+      padding: 3px 10px;
       border-radius: 999px;
       font-size: 0.78rem;
+    }
+
+    .admin-gate-btn {
+      background: hsla(0, 0%, 100%, 0.14);
+      color: hsl(0, 0%, 100%);
+      border: 1px solid hsla(0, 0%, 100%, 0.3);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .admin-gate-btn:hover {
+      background: hsla(0, 0%, 100%, 0.25);
+    }
+
+    .admin-logout-btn {
+      background: hsl(354, 78%, 45%);
+      color: hsl(0, 0%, 100%);
+      border: none;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
     }
 
     .hero-banner {
@@ -76,6 +104,10 @@
       color: hsl(0, 0%, 100%);
       padding: 28px 16px 24px;
       box-shadow: 0 4px 18px hsla(212, 72%, 18%, 0.14);
+    }
+
+    .hero-banner.admin-mode {
+      background: linear-gradient(135deg, hsl(220, 45%, 15%) 0%, hsl(215, 52%, 24%) 60%, hsl(35, 85%, 36%) 100%);
     }
 
     .container {
@@ -460,24 +492,32 @@
   <div class="emergency-bar">
     <div class="emergency-flex">
       <span>🏛️ ศูนย์ปฏิบัติการช่วยเหลือเยียวยาผู้ประสบอุทกภัย (องค์กรปกครองส่วนท้องถิ่น / ปภ.)</span>
-      <div>
-        <span class="hotline-pill">📞 สายด่วนนิรภัย 1784 (ตลอด 24 ชม.)</span>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="hotline-pill">📞 สายด่วนนิรภัย 1784</span>
+        <button type="button" id="adminLoginTriggerBtn" class="admin-gate-btn" onclick="openAdminLoginModal()">🔐 สำหรับผู้ช่วยเหลือ (แอดมิน)</button>
+        <button type="button" id="adminLogoutBtn" class="admin-logout-btn" onclick="logoutAdminPortal()">🚪 ออกจากระบบแอดมิน (กลับหน้าประชาชน)</button>
       </div>
     </div>
   </div>
 
-  <header class="hero-banner">
+  <header id="mainHeroBanner" class="hero-banner">
     <div class="container hero-grid">
       <div>
-        <span class="gov-badge">ระบบบริการภาครัฐดิจิทัล พ.ศ. 2569</span>
-        <h1 class="hero-title">🌊 ระบบลงทะเบียนและช่วยเหลือเยียวยาผู้ประสบอุทกภัย</h1>
-        <p class="hero-subtitle">ยื่นคำร้องออนไลน์ คัดกรองกลุ่มเปราะบางเร่งด่วน ประเมินความเสียหายภาคสนาม และโอนเงินเยียวยาผ่าน PromptPay</p>
+        <span id="portalModeBadge" class="gov-badge">ระบบบริการประชาชนออนไลน์ พ.ศ. 2569</span>
+        <h1 id="portalHeroTitle" class="hero-title">🌊 ระบบลงทะเบียนและช่วยเหลือเยียวยาผู้ประสบอุทกภัย</h1>
+        <p id="portalHeroSubtitle" class="hero-subtitle">สำหรับประชาชนยื่นคำร้องขอรับความช่วยเหลือฉุกเฉิน และติดตามสถานะการโอนเงินเยียวยา</p>
       </div>
-      <nav class="nav-tabs">
-        <button class="tab-btn active" onclick="switchView('intakeView', this)">📝 ยื่นคำร้อง</button>
-        <button class="tab-btn" onclick="switchView('trackingView', this)">🔍 ตรวจสอบสถานะ</button>
-        <button class="tab-btn" onclick="switchView('officerView', this)">🛡️ สำรวจ/อนุมัติ</button>
-        <button class="tab-btn" onclick="switchView('financeView', this)">💳 เบิกจ่าย/ส่งธนาคาร</button>
+
+      <!-- เมนูสำหรับประชาชน (แสดงเป็นค่าเริ่มต้น) -->
+      <nav id="citizenNavTabs" class="nav-tabs">
+        <button class="tab-btn active" onclick="switchCitizenView('intakeView', this)">📝 ยื่นคำร้องผู้ประสบภัย</button>
+        <button class="tab-btn" onclick="switchCitizenView('trackingView', this)">🔍 ตรวจสอบสถานะคำร้อง</button>
+      </nav>
+
+      <!-- เมนูสำหรับผู้ช่วยเหลือ/แอดมิน (ซ่อนไว้จนกว่าจะใส่รหัสผ่านแอดมินถูกต้อง) -->
+      <nav id="adminNavTabs" class="nav-tabs" style="display: none;">
+        <button id="adminTab1Btn" class="tab-btn active" onclick="switchAdminView('officerView', this)">🛡️ สำรวจพื้นที่ / อนุมัติสิทธิ์</button>
+        <button id="adminTab2Btn" class="tab-btn" onclick="switchAdminView('financeView', this)">💳 เบิกจ่ายงบ / ส่งธนาคาร</button>
       </nav>
     </div>
   </header>
@@ -500,7 +540,9 @@
 
     <div id="notificationBanner" class="status-banner"></div>
 
-    <!-- VIEW 1: CITIZEN INTAKE PORTAL -->
+    <!-- ========================================== -->
+    <!-- PORTAL 1: สำหรับประชาชน (ผู้ใช้ทั่วไป)       -->
+    <!-- ========================================== -->
     <section id="intakeView" class="view-section active">
       <form id="floodRegistrationForm" onsubmit="handleCitizenSubmit(event)">
         <div class="card">
@@ -615,7 +657,6 @@
       </form>
     </section>
 
-    <!-- VIEW 2: CITIZEN TRACKING PORTAL -->
     <section id="trackingView" class="view-section">
       <div class="card">
         <div class="section-heading">
@@ -629,7 +670,9 @@
       </div>
     </section>
 
-    <!-- VIEW 3: OFFICER FIELD ASSESSMENT & APPROVAL -->
+    <!-- ==================================================== -->
+    <!-- PORTAL 2: สำหรับผู้ช่วยเหลือ / แอดมิน (ล็อกด้วยรหัสผ่าน) -->
+    <!-- ==================================================== -->
     <section id="officerView" class="view-section">
       <div class="grid-4" style="margin-bottom: 20px;">
         <div class="kpi-card">
@@ -652,7 +695,7 @@
 
       <div class="card">
         <div class="section-heading">
-          <span>📋 ตารางคัดกรองและประเมินความเสียหายภาคสนาม (เรียงตามความเร่งด่วนสูงสุด)</span>
+          <span>📋 ตารางคัดกรองและประเมินความเสียหายภาคสนาม (เฉพาะเจ้าหน้าที่ผู้ช่วยเหลือ)</span>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <select id="tierFilterSelect" class="form-control" style="width: auto;" onchange="renderOfficerTable()">
               <option value="ALL">แสดงทุกระดับความเร่งด่วน</option>
@@ -677,14 +720,13 @@
               </tr>
             </thead>
             <tbody id="officerTableBody">
-              <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">กำลังโหลดข้อมูล...</td></tr>
+              <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">กรุณาเข้าสู่ระบบแอดมินเพื่อดูข้อมูล</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 4: PHASE 4 DISBURSEMENT & BANK EXPORT -->
     <section id="financeView" class="view-section">
       <div class="grid-3" style="margin-bottom: 20px;">
         <div class="kpi-card amber-top">
@@ -720,7 +762,7 @@
               </tr>
             </thead>
             <tbody id="financeReadyBody">
-              <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">กำลังโหลดข้อมูล...</td></tr>
+              <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">กรุณาเข้าสู่ระบบแอดมินเพื่อดูข้อมูล</td></tr>
             </tbody>
           </table>
         </div>
@@ -751,6 +793,31 @@
       </div>
     </section>
   </main>
+
+  <!-- MODAL: ADMIN LOGIN GATE -->
+  <div id="adminLoginModal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="section-heading">
+        <span>🔐 ยืนยันตัวตนเจ้าหน้าที่ผู้ช่วยเหลือ (แอดมิน)</span>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+        ส่วนงานสำรวจความเสียหายและอนุมัติงบประมาณจำกัดสิทธิ์เฉพาะเจ้าหน้าที่ผู้ได้รับอนุญาตเท่านั้น
+      </p>
+      <form id="adminLoginForm" onsubmit="handleAdminLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">รหัสผ่านผู้ช่วยเหลือ (Admin Passcode) *</label>
+          <input type="password" id="adminPasscodeInput" class="form-control" placeholder="กรอกรหัสผ่านเจ้าหน้าที่..." required>
+        </div>
+        <div id="adminLoginErrorText" style="color: var(--tier-red-text); font-size: 0.85rem; font-weight: 600; display: none; margin-bottom: 10px;">
+          ✕ รหัสผ่านไม่ถูกต้อง ประชาชนทั่วไปไม่สามารถเข้าใช้งานส่วนนี้ได้
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+          <button type="button" class="btn-secondary" onclick="closeAdminLoginModal()">ยกเลิก</button>
+          <button type="submit" id="adminLoginSubmitBtn" class="btn-primary">เข้าสู่ระบบแอดมิน</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL: FIELD ASSESSMENT & APPROVAL -->
   <div id="assessmentModal" class="modal-backdrop">
@@ -837,6 +904,9 @@
   </div>
 
   <script>
+    let activeAdminPasscode = '';
+    let isAdminAuthenticated = false;
+
     let cachedRegistrations = [
       {
         requestId: 'REQ-2569-00001',
@@ -872,22 +942,130 @@
 
     let cachedDisbursements = [];
 
-    function switchView(targetViewId, clickedButton) {
+    function hideAllViews() {
       const views = document.querySelectorAll('.view-section');
       for (let i = 0; i < views.length; i++) {
         views[i].classList.remove('active');
       }
+    }
+
+    function switchCitizenView(targetViewId, clickedButton) {
+      if (targetViewId === 'officerView' || targetViewId === 'financeView') {
+        return;
+      }
+      hideAllViews();
       document.getElementById(targetViewId).classList.add('active');
 
-      const buttons = document.querySelectorAll('.tab-btn');
-      for (let j = 0; j < buttons.length; j++) {
-        buttons[j].classList.remove('active');
+      const citizenButtons = document.querySelectorAll('#citizenNavTabs .tab-btn');
+      for (let j = 0; j < citizenButtons.length; j++) {
+        citizenButtons[j].classList.remove('active');
       }
       clickedButton.classList.add('active');
+    }
 
-      if (targetViewId === 'officerView' || targetViewId === 'financeView') {
-        loadDashboardData();
+    function switchAdminView(targetViewId, clickedButton) {
+      if (!isAdminAuthenticated) {
+        openAdminLoginModal();
+        return;
       }
+      hideAllViews();
+      document.getElementById(targetViewId).classList.add('active');
+
+      const adminButtons = document.querySelectorAll('#adminNavTabs .tab-btn');
+      for (let j = 0; j < adminButtons.length; j++) {
+        adminButtons[j].classList.remove('active');
+      }
+      clickedButton.classList.add('active');
+      loadDashboardData();
+    }
+
+    function openAdminLoginModal() {
+      document.getElementById('adminPasscodeInput').value = '';
+      document.getElementById('adminLoginErrorText').style.display = 'none';
+      document.getElementById('adminLoginModal').classList.add('open');
+      setTimeout(function () {
+        document.getElementById('adminPasscodeInput').focus();
+      }, 100);
+    }
+
+    function closeAdminLoginModal() {
+      document.getElementById('adminLoginModal').classList.remove('open');
+    }
+
+    function handleAdminLoginSubmit(submitEvent) {
+      submitEvent.preventDefault();
+      const enteredPasscode = document.getElementById('adminPasscodeInput').value.trim();
+      const loginBtn = document.getElementById('adminLoginSubmitBtn');
+      const errorEl = document.getElementById('adminLoginErrorText');
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'กำลังตรวจสอบสิทธิ์...';
+      errorEl.style.display = 'none';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function (authOutcome) {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'เข้าสู่ระบบแอดมิน';
+            if (authOutcome && authOutcome.authorized) {
+              activateAdminPortal(enteredPasscode);
+            } else {
+              errorEl.style.display = 'block';
+            }
+          })
+          .withFailureHandler(function () {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'เข้าสู่ระบบแอดมิน';
+            errorEl.style.display = 'block';
+          })
+          .verifyAdminLogin(enteredPasscode);
+      } else {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'เข้าสู่ระบบแอดมิน';
+        if (enteredPasscode === 'admin1784') {
+          activateAdminPortal(enteredPasscode);
+        } else {
+          errorEl.style.display = 'block';
+        }
+      }
+    }
+
+    function activateAdminPortal(verifiedPasscode) {
+      activeAdminPasscode = verifiedPasscode;
+      isAdminAuthenticated = true;
+      closeAdminLoginModal();
+
+      document.getElementById('citizenNavTabs').style.display = 'none';
+      document.getElementById('adminNavTabs').style.display = 'flex';
+      document.getElementById('adminLoginTriggerBtn').style.display = 'none';
+      document.getElementById('adminLogoutBtn').style.display = 'inline-block';
+
+      document.getElementById('mainHeroBanner').classList.add('admin-mode');
+      document.getElementById('portalModeBadge').textContent = '🛡️ โหมดผู้ช่วยเหลือ / เจ้าหน้าที่แอดมิน (ยืนยันสิทธิ์แล้ว)';
+      document.getElementById('portalHeroTitle').textContent = '🛡️ ศูนย์บัญชาการสำรวจความเสียหายและอนุมัติงบเยียวยา';
+      document.getElementById('portalHeroSubtitle').textContent = 'สำหรับเจ้าหน้าที่ตรวจประเมินความเสียหายภาคสนาม อนุมัติวงเงิน และส่งออกไฟล์โอนเงินธนาคาร';
+
+      switchAdminView('officerView', document.getElementById('adminTab1Btn'));
+      showBannerMessage('เข้าสู่ระบบผู้ช่วยเหลือ (แอดมิน) สำเร็จ', false);
+    }
+
+    function logoutAdminPortal() {
+      activeAdminPasscode = '';
+      isAdminAuthenticated = false;
+
+      document.getElementById('adminNavTabs').style.display = 'none';
+      document.getElementById('citizenNavTabs').style.display = 'flex';
+      document.getElementById('adminLogoutBtn').style.display = 'none';
+      document.getElementById('adminLoginTriggerBtn').style.display = 'inline-block';
+
+      document.getElementById('mainHeroBanner').classList.remove('admin-mode');
+      document.getElementById('portalModeBadge').textContent = 'ระบบบริการประชาชนออนไลน์ พ.ศ. 2569';
+      document.getElementById('portalHeroTitle').textContent = '🌊 ระบบลงทะเบียนและช่วยเหลือเยียวยาผู้ประสบอุทกภัย';
+      document.getElementById('portalHeroSubtitle').textContent = 'สำหรับประชาชนยื่นคำร้องขอรับความช่วยเหลือฉุกเฉิน และติดตามสถานะการโอนเงินเยียวยา';
+
+      const citizenFirstTab = document.querySelector('#citizenNavTabs .tab-btn');
+      switchCitizenView('intakeView', citizenFirstTab);
+      showBannerMessage('ออกจากระบบแอดมินเรียบร้อยแล้ว กลับสู่หน้าบริการประชาชน', false);
     }
 
     function showBannerMessage(messageText, isError) {
@@ -1113,6 +1291,9 @@
     }
 
     function loadDashboardData() {
+      if (!isAdminAuthenticated) {
+        return;
+      }
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function (overview) {
@@ -1122,7 +1303,10 @@
             renderOfficerTable();
             renderFinanceTables();
           })
-          .getDashboardOverview();
+          .withFailureHandler(function (err) {
+            showBannerMessage(err.message || 'ไม่สามารถโหลดข้อมูลแอดมินได้', true);
+          })
+          .getDashboardOverview(activeAdminPasscode);
       } else {
         updateDashboardMetrics({
           totalRequests: cachedRegistrations.length,
@@ -1273,7 +1457,7 @@
             saveBtn.textContent = 'ยืนยันผลสำรวจ & อนุมัติสิทธิ์';
             showBannerMessage(err.message || 'เกิดข้อผิดพลาด', true);
           })
-          .recordFieldAssessment(assessmentForm);
+          .recordFieldAssessment(assessmentForm, activeAdminPasscode);
       } else {
         saveBtn.disabled = false;
         saveBtn.textContent = 'ยืนยันผลสำรวจ & อนุมัติสิทธิ์';
@@ -1326,7 +1510,7 @@
             saveBtn.textContent = 'บันทึกการโอนเงินสำเร็จ';
             showBannerMessage(err.message || 'เกิดข้อผิดพลาดในการบันทึกการโอนเงิน', true);
           })
-          .recordDisbursementPayment(paymentInput);
+          .recordDisbursementPayment(paymentInput, activeAdminPasscode);
       } else {
         saveBtn.disabled = false;
         saveBtn.textContent = 'บันทึกการโอนเงินสำเร็จ';
@@ -1336,6 +1520,10 @@
     }
 
     function downloadPromptPayCsv() {
+      if (!isAdminAuthenticated) {
+        openAdminLoginModal();
+        return;
+      }
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function (exportPack) {
@@ -1346,7 +1534,10 @@
             triggerBrowserCsvDownload(exportPack.csvContent, 'PromptPay_FloodRelief_Batch.csv');
             showBannerMessage('ดาวน์โหลดไฟล์ CSV สำหรับส่งธนาคารสำเร็จ (' + exportPack.readyCount + ' รายการ)', false);
           })
-          .generatePromptPayBatchCsv();
+          .withFailureHandler(function (err) {
+            showBannerMessage(err.message || 'ไม่มีสิทธิ์ส่งออกไฟล์', true);
+          })
+          .generatePromptPayBatchCsv(activeAdminPasscode);
       } else {
         const sampleCsv = '\uFEFFลำดับ,รหัสคำร้อง,เลขบัตรประชาชน,ชื่อ-นามสกุล,เลขพร้อมเพย์,จำนวนเงินเยียวยา(บาท),ตำบล,สถานะ\r\n1,REQ-2569-00001,="1234567890121","นายสมชาย ใจมั่น",="0812345678",30000,"ปากน้ำ","อนุมัติเยียวยา"';
         triggerBrowserCsvDownload(sampleCsv, 'PromptPay_FloodRelief_Batch.csv');

@@ -1,6 +1,7 @@
 const SYSTEM_CONFIG = {
   DRIVE_ROOT_FOLDER_NAME: 'คลังภาพหลักฐานผู้ประสบอุทกภัย_2569',
   SCRIPT_PROP_FOLDER_ID: 'EVIDENCE_ROOT_FOLDER_ID',
+  ADMIN_PASSCODE: 'admin1784',
   HEADER_BG_COLOR: '#1E293B',
   HEADER_TEXT_COLOR: '#F8FAFC',
   LEGACY_SHEET_NAMES: [
@@ -643,7 +644,24 @@ function resolveThaiDamageLabel(damageInput) {
   return damageInput;
 }
 
-function recordFieldAssessment(assessmentInput) {
+function verifyAdminLogin(passcodeInput) {
+  const cleanPasscode = String(passcodeInput || '').trim();
+  const isAuthorized = cleanPasscode === SYSTEM_CONFIG.ADMIN_PASSCODE;
+  return {
+    authorized: isAuthorized,
+    roleTitle: isAuthorized ? 'เจ้าหน้าที่ศูนย์ช่วยเหลือเยียวยา (Admin)' : ''
+  };
+}
+
+function assertAdminAuthorized(passcodeInput) {
+  const verification = verifyAdminLogin(passcodeInput);
+  if (!verification.authorized) {
+    throw new Error('ปฏิเสธการเข้าถึง: รหัสผ่านผู้ช่วยเหลือ (แอดมิน) ไม่ถูกต้อง');
+  }
+}
+
+function recordFieldAssessment(assessmentInput, adminPasscode) {
+  assertAdminAuthorized(adminPasscode);
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
   const assessmentSchema = TABLE_SCHEMAS.tbl_assessments;
@@ -749,7 +767,8 @@ function doGet() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-function getDashboardOverview() {
+function getDashboardOverview(adminPasscode) {
+  assertAdminAuthorized(adminPasscode);
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   let regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
   if (!regSheet) {
@@ -884,7 +903,8 @@ function readAllDisbursements(disbursementSheet) {
   return list.reverse();
 }
 
-function recordDisbursementPayment(paymentInput) {
+function recordDisbursementPayment(paymentInput, adminPasscode) {
+  assertAdminAuthorized(adminPasscode);
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
   const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
@@ -941,8 +961,9 @@ function recordDisbursementPayment(paymentInput) {
   };
 }
 
-function generatePromptPayBatchCsv() {
-  const overview = getDashboardOverview();
+function generatePromptPayBatchCsv(adminPasscode) {
+  assertAdminAuthorized(adminPasscode);
+  const overview = getDashboardOverview(adminPasscode);
   const csvLines = ['ลำดับ,รหัสคำร้อง,เลขบัตรประชาชน,ชื่อ-นามสกุล,เลขพร้อมเพย์,จำนวนเงินเยียวยา(บาท),ตำบล,สถานะ'];
   let sequenceNo = 1;
 
@@ -1017,5 +1038,5 @@ function testSeedSampleFloodData() {
     damageCategory: 'เสียหายบางส่วน (หนัก)',
     reliefPackDelivered: true,
     inspectorNotes: 'น้ำท่วมสูงเกิน 1.3 เมตร มีผู้ป่วยติดเตียง มอบถุงยังชีพแล้ว อนุมัติเยียวยา 30,000 บาท'
-  });
+  }, SYSTEM_CONFIG.ADMIN_PASSCODE);
 }
