@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { ClaimRegistrationService } from '../relief-claims/claim-registration-service.js';
-import { FlexMessageBuilder } from '../line-messaging/flex-message-builder.js';
+import { FlexMessageBuilder, LiveSheetClaimRecord } from '../line-messaging/flex-message-builder.js';
 
 function matchEmergencyIntent(textInput: string): boolean {
   return /ช่วยเหลือ|กู้ภัย|พิกัด|ยังชีพ|น้ำท่วม|ติดค้าง|ฉุกเฉิน/.test(textInput);
@@ -16,7 +16,8 @@ export class LineWebhookController {
     private readonly channelSecret: string,
     private readonly channelAccessToken: string,
     private readonly liffAppUrl: string,
-    private readonly claimService: ClaimRegistrationService
+    private readonly claimService: ClaimRegistrationService,
+    private readonly googleAppsScriptUrl: string = 'https://script.google.com/macros/s/AKfycbyfa-XLxBg2qLLNeKqlATZNEGg4M70JUuE7p2zyZ-fceGBRnSGszkPP9eDIznGHpacm/exec'
   ) {}
 
   public verifySignature(rawBodyBuffer: Buffer, signatureHeader: string): boolean {
@@ -80,27 +81,21 @@ export class LineWebhookController {
 
     const userMessageText: string = singleEvent.message.text.trim();
 
-    if (userMessageText.startsWith('FL-')) {
-      const claimRecord = this.claimService.findClaimById(userMessageText);
-      if (!claimRecord) {
-        await this.sendLineReply(replyToken, [
-          { type: 'text', text: `ไม่พบข้อมูลคำร้องหมายเลข "${userMessageText}" ในระบบ` }
-        ]);
-        return;
-      }
-
-      const flexMessage = FlexMessageBuilder.buildClaimStatusFlex(claimRecord, this.liffAppUrl);
-      await this.sendLineReply(replyToken, [flexMessage]);
-      return;
-    }
-
     if (userMessageText === 'เช็คสถานะ' || userMessageText === 'ตรวจสอบสถานะ') {
       await this.sendLineReply(replyToken, [
         {
           type: 'text',
-          text: 'กรุณาพิมพ์รหัสคำร้องของคุณ (เช่น FL-XXXX) หรือเปิดเมนู "ตรวจสอบสถานะคำร้อง" จาก Rich Menu'
+          text: `🔍 ระบบตรวจสอบสถานะคำร้องผู้ประสบภัย\n\n📌 ท่านสามารถตรวจสอบสถานะได้ทันที:\n• พิมพ์ "รหัสคำร้อง" (เช่น REQ-2569-00002)\n• หรือพิมพ์ "เลขบัตรประชาชน 13 หลัก"\n\nแล้วส่งข้อความเข้ามาในแชทนี้ได้เลยครับ\n\n🌐 หรือแตะลิงก์เพื่อตรวจสอบผ่านหน้าเว็บ:\n${this.googleAppsScriptUrl}`
         }
       ]);
+      return;
+    }
+
+    const isRequestId = /^REQ-/i.test(userMessageText) || /^FL-/i.test(userMessageText);
+    const isCitizenId = /^\d{13}$/.test(userMessageText);
+
+    if (isRequestId || isCitizenId) {
+      await this.handleStatusQuery(replyToken, userMessageText);
       return;
     }
 
@@ -127,7 +122,40 @@ export class LineWebhookController {
     await this.sendLineReply(replyToken, [
       {
         type: 'text',
-        text: 'ศูนย์ช่วยเหลือเยียวยาผู้ประสบอุทกภัย ยินดีให้บริการครับ\n\nกรุณาเลือกเมนูจากแถบด้านล่าง:\n• ยื่นขอเงินเยียวยา (5,000 - 9,000 บ.)\n• ตรวจสอบสถานะคำร้อง (พิมพ์ FL-XXXX)\n• แจ้งพิกัดน้ำท่วม / ขอถุงยังชีพ\n• สายด่วน 1784'
+        text: 'ศูนย์ช่วยเหลือเยียวยาผู้ประสบอุทกภัย ยินดีให้บริการครับ\n\nกรุณาเลือกเมนูจากแถบด้านล่าง:\n• ยื่นขอเงินเยียวยา\n• ตรวจสอบสถานะคำร้อง (พิมพ์ REQ-2569-XXXXX หรือเลขบัตร ปชช. 13 หลัก)\n• แจ้งพิกัดน้ำท่วม / ขอถุงยังชีพ\n• สายด่วน 1784'
+      }
+    ]);
+  }
+
+  private async handleStatusQuery(replyToken: string, queryKeyword: string): Promise<void> {
+    try {
+      const searchEndpoint = `${this.googleAppsScriptUrl}?action=search&keyword=${encodeURIComponent(queryKeyword)}`;
+      const httpResponse = await fetch(searchEndpoint, { redirect: 'follow' });
+      const responseData = (await httpResponse.json()) as { records?: LiveSheetClaimRecord[] };
+      const matchedRecords = responseData.records || [];
+
+      if (matchedRecords.length > 0) {
+        const statusCards = matchedRecords.slice(0, 3).map((singleRecord) =>
+          FlexMessageBuilder.buildLiveSheetStatusFlex(singleRecord, this.googleAppsScriptUrl)
+        );
+        await this.sendLineReply(replyToken, statusCards);
+        return;
+      }
+    } catch (networkError) {
+      console.error('[Webhook] Failed to query Google Sheets:', networkError);
+    }
+
+    const localClaim = this.claimService.findClaimById(queryKeyword);
+    if (localClaim) {
+      const flexMessage = FlexMessageBuilder.buildClaimStatusFlex(localClaim, this.liffAppUrl);
+      await this.sendLineReply(replyToken, [flexMessage]);
+      return;
+    }
+
+    await this.sendLineReply(replyToken, [
+      {
+        type: 'text',
+        text: `⚠️ ไม่พบข้อมูลคำร้องหมายเลข "${queryKeyword}" ในระบบ\n\nโปรดตรวจสอบรหัสคำร้อง (เช่น REQ-2569-00002) หรือเลขบัตรประชาชน 13 หลักของผู้ยื่นคำขออีกครั้งครับ\n\n🌐 หรือค้นหาผ่านหน้าเว็บได้ที่:\n${this.googleAppsScriptUrl}`
       }
     ]);
   }

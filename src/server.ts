@@ -18,6 +18,9 @@ const serverPort = Number(process.env.PORT) || 3000;
 const lineChannelSecret = process.env.LINE_CHANNEL_SECRET || 'MOCK_SECRET';
 const lineAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN || 'MOCK_TOKEN';
 const liffAppUrl = process.env.LIFF_APP_URL || 'https://liff.line.me/MOCK_ID';
+const googleAppsScriptUrl =
+  process.env.GOOGLE_APPS_SCRIPT_URL ||
+  'https://script.google.com/macros/s/AKfycbyfa-XLxBg2qLLNeKqlATZNEGg4M70JUuE7p2zyZ-fceGBRnSGszkPP9eDIznGHpacm/exec';
 
 const claimService = new ClaimRegistrationService();
 const claimsController = new ClaimsApiController(claimService);
@@ -25,7 +28,8 @@ const webhookController = new LineWebhookController(
   lineChannelSecret,
   lineAccessToken,
   liffAppUrl,
-  claimService
+  claimService,
+  googleAppsScriptUrl
 );
 
 // Serve static LIFF application

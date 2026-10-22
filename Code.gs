@@ -813,6 +813,19 @@ function findRegistrationRowIndexById(regSheet, targetRequestId) {
   return -1;
 }
 
+function buildApprovedAmountMap(assessmentSheet) {
+  const amountMapping = {};
+  if (!assessmentSheet || assessmentSheet.getLastRow() <= 1) {
+    return amountMapping;
+  }
+  const assessmentRows = assessmentSheet.getRange(2, 1, assessmentSheet.getLastRow() - 1, 7).getValues();
+  for (let idx = 0; idx < assessmentRows.length; idx++) {
+    const targetRequestId = String(assessmentRows[idx][1]).trim();
+    amountMapping[targetRequestId] = Number(assessmentRows[idx][4]) || 0;
+  }
+  return amountMapping;
+}
+
 function findRegistrationByKeyword(searchKeyword) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
@@ -849,7 +862,16 @@ function findRegistrationByKeyword(searchKeyword) {
   return matchedRecords;
 }
 
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && (e.parameter.action === 'search' || e.parameter.keyword || e.parameter.query)) {
+    const searchKeyword = String(e.parameter.keyword || e.parameter.query || '').trim();
+    const matchedRecords = findRegistrationByKeyword(searchKeyword);
+    return ContentService.createTextOutput(JSON.stringify({
+      statusCode: 200,
+      keyword: searchKeyword,
+      records: matchedRecords
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('ระบบช่วยเหลือเยียวยาผู้ประสบอุทกภัย')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
@@ -1194,9 +1216,11 @@ function dispatchLineBroadcastMessage(flexMessageContainer) {
       }),
       muteHttpExceptions: true
     };
-    UrlFetchApp.fetch(LINE_BOT_CONFIG.BROADCAST_URL, requestOptions);
+    const networkResponse = UrlFetchApp.fetch(LINE_BOT_CONFIG.BROADCAST_URL, requestOptions);
+    Logger.log('LINE Dispatch Status: ' + networkResponse.getResponseCode());
+    Logger.log('LINE Dispatch Body: ' + networkResponse.getContentText());
   } catch (dispatchError) {
-    Logger.log('LINE Dispatch Warning: ' + dispatchError);
+    Logger.log('LINE Dispatch Exception: ' + dispatchError);
   }
 }
 
@@ -1475,4 +1499,20 @@ function notifyLineDisbursementPaid(disbursementRecord) {
   };
 
   dispatchLineBroadcastMessage(flexCard);
+}
+
+function testSendLineAlert() {
+  notifyLineNewRegistration({
+    requestId: 'REQ-2569-TEST01',
+    fullname: 'ทดสอบ แจ้งเตือนผู้ประสบภัย',
+    subdistrict: 'ตำบลเวียงพางคำ',
+    waterDepthCm: 150,
+    priorityTier: PRIORITY_TIERS_TH.RED,
+    gpsLat: '20.4321',
+    gpsLng: '99.8876'
+  });
+}
+
+function authorizeLineUrlFetch() {
+  UrlFetchApp.fetch('https://api.line.me');
 }
