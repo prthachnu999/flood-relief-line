@@ -427,6 +427,198 @@ export class FlexMessageBuilder {
     };
   }
 
+  public static buildRegistrationHubFlex(webAppUrl: string, liffAppUrl: string) {
+    return {
+      type: 'flex',
+      altText: '📝 ยื่นขอรับเงินเยียวยาผู้ประสบอุทกภัย พ.ศ. 2569',
+      contents: {
+        type: 'bubble',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          backgroundColor: '#1E40AF',
+          paddingAll: '16px',
+          contents: [
+            {
+              type: 'text',
+              text: '📝 ยื่นคำร้องขอรับเงินช่วยเหลือ',
+              color: '#DBEAFE',
+              size: 'xs',
+              weight: 'bold'
+            },
+            {
+              type: 'text',
+              text: 'ลงทะเบียนขอเงินเยียวยาน้ำท่วม',
+              color: '#FFFFFF',
+              size: 'lg',
+              weight: 'bold',
+              margin: 'xs'
+            }
+          ]
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          spacing: 'md',
+          paddingAll: '18px',
+          contents: [
+            {
+              type: 'text',
+              text: 'เงินเยียวยาตามเกณฑ์ ปภ. 5,000 - 49,500 บาท',
+              weight: 'bold',
+              size: 'sm',
+              color: '#0F172A'
+            },
+            {
+              type: 'text',
+              text: 'ท่านสามารถแตะปุ่มด้านล่างเพื่อเปิดแบบฟอร์มลงทะเบียน พร้อมแนบพิกัด GPS และรูปถ่ายความเสียหายได้ทันที:',
+              wrap: true,
+              size: 'xs',
+              color: '#64748B'
+            },
+            {
+              type: 'button',
+              style: 'primary',
+              color: '#2563EB',
+              height: 'md',
+              action: {
+                type: 'uri',
+                label: '📝 เปิดแบบฟอร์มยื่นขอเงินเยียวยา',
+                uri: webAppUrl
+              }
+            },
+            {
+              type: 'box',
+              layout: 'vertical',
+              backgroundColor: '#F8FAFC',
+              cornerRadius: '8px',
+              paddingAll: '10px',
+              spacing: 'xs',
+              contents: [
+                {
+                  type: 'text',
+                  text: '📌 สิ่งที่ต้องเตรียม:',
+                  weight: 'bold',
+                  size: 'xs',
+                  color: '#334155'
+                },
+                {
+                  type: 'text',
+                  text: '1. เลขบัตรประชาชน 13 หลัก\n2. บัญชีพร้อมเพย์\n3. ภาพถ่ายบ้านและระดับน้ำ',
+                  wrap: true,
+                  size: 'xxs',
+                  color: '#64748B'
+                }
+              ]
+            },
+            {
+              type: 'button',
+              style: 'secondary',
+              height: 'md',
+              color: '#DC2626',
+              action: {
+                type: 'uri',
+                label: '🚨 น้ำท่วมวิกฤต ส่งพิกัดขอกู้ภัยด่วน',
+                uri: `${liffAppUrl}?mode=emergency`
+              }
+            }
+          ]
+        }
+      }
+    };
+  }
+
+  public static buildWelcomeMenuFlex(webAppUrl: string, liffAppUrl: string) {
+    return {
+      type: 'flex',
+      altText: 'ศูนย์ช่วยเหลือเยียวยาผู้ประสบอุทกภัย ยินดีให้บริการครับ',
+      contents: {
+        type: 'bubble',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          backgroundColor: '#0F172A',
+          paddingAll: '16px',
+          contents: [
+            {
+              type: 'text',
+              text: '🌊 ศูนย์ช่วยเหลือเยียวยาอุทกภัย 2569',
+              color: '#93C5FD',
+              size: 'xs',
+              weight: 'bold'
+            },
+            {
+              type: 'text',
+              text: 'เมนูบริการประชาชน',
+              color: '#FFFFFF',
+              size: 'lg',
+              weight: 'bold',
+              margin: 'xs'
+            }
+          ]
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          spacing: 'md',
+          paddingAll: '18px',
+          contents: [
+            {
+              type: 'text',
+              text: 'ยินดีต้อนรับครับ กรุณาเลือกบริการที่ต้องการ:',
+              size: 'xs',
+              color: '#64748B'
+            },
+            {
+              type: 'button',
+              style: 'primary',
+              color: '#2563EB',
+              height: 'md',
+              action: {
+                type: 'message',
+                label: '📝 ยื่นขอเงินเยียวยา',
+                text: 'ยื่นขอเงินเยียวยา'
+              }
+            },
+            {
+              type: 'button',
+              style: 'primary',
+              color: '#059669',
+              height: 'md',
+              action: {
+                type: 'message',
+                label: '🔍 ตรวจสอบสถานะคำร้อง',
+                text: 'ตรวจสอบสถานะ'
+              }
+            },
+            {
+              type: 'button',
+              style: 'primary',
+              color: '#DC2626',
+              height: 'md',
+              action: {
+                type: 'message',
+                label: '🚨 แจ้งเหตุด่วน / ขอกู้ภัย',
+                text: 'ขอความช่วยเหลือด่วน'
+              }
+            },
+            {
+              type: 'button',
+              style: 'secondary',
+              height: 'md',
+              color: '#0284C7',
+              action: {
+                type: 'uri',
+                label: '📞 สายด่วนนิรภัย 1784 (โทรฟรี)',
+                uri: 'tel:1784'
+              }
+            }
+          ]
+        }
+      }
+    };
+  }
+
   public static buildHotlineFlex() {
     return {
       type: 'flex',

@@ -11,6 +11,10 @@ function matchHotlineIntent(textInput: string): boolean {
   return /1784|สายด่วน|โทร|เบอร์/.test(textInput);
 }
 
+function matchRegisterIntent(textInput: string): boolean {
+  return /ยื่น|ขอเงิน|ลงทะเบียน|เงินเยียวยา|เยียวยา|คำร้อง|ขอรับสิทธิ์|สมัคร/.test(textInput);
+}
+
 export class LineWebhookController {
   constructor(
     private readonly channelSecret: string,
@@ -128,12 +132,14 @@ export class LineWebhookController {
       return;
     }
 
-    await this.sendLineReply(replyToken, [
-      {
-        type: 'text',
-        text: 'ศูนย์ช่วยเหลือเยียวยาผู้ประสบอุทกภัย ยินดีให้บริการครับ\n\nกรุณาเลือกเมนูจากแถบด้านล่าง:\n• ยื่นขอเงินเยียวยา\n• ตรวจสอบสถานะคำร้อง (พิมพ์ REQ-..., เลขบัตร ปชช. หรือ เบอร์โทรศัพท์)\n• แจ้งพิกัดน้ำท่วม / ขอถุงยังชีพ\n• สายด่วน 1784'
-      }
-    ]);
+    if (matchRegisterIntent(userMessageText)) {
+      const registerCard = FlexMessageBuilder.buildRegistrationHubFlex(this.googleAppsScriptUrl, this.liffAppUrl);
+      await this.sendLineReply(replyToken, [registerCard]);
+      return;
+    }
+
+    const welcomeCard = FlexMessageBuilder.buildWelcomeMenuFlex(this.googleAppsScriptUrl, this.liffAppUrl);
+    await this.sendLineReply(replyToken, [welcomeCard]);
   }
 
   private async handleStatusQuery(replyToken: string, queryKeyword: string): Promise<void> {
