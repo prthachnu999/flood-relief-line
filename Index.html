@@ -1071,20 +1071,36 @@
 
   <!-- MODAL: ADMIN LOGIN GATE -->
   <div id="adminLoginModal" class="modal-backdrop">
-    <div class="modal-box" style="max-width: 440px;">
+    <div class="modal-box" style="max-width: 460px;">
       <div class="section-heading">
         <span>🔐 ยืนยันตัวตนเจ้าหน้าที่ผู้ช่วยเหลือ (แอดมิน)</span>
       </div>
-      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px;">
         ส่วนงานสำรวจความเสียหายและอนุมัติงบประมาณจำกัดสิทธิ์เฉพาะเจ้าหน้าที่ผู้ได้รับอนุญาตเท่านั้น
       </p>
+
+      <!-- กล่องแสดงรหัสผ่านประจำระบบ พร้อมปุ่มคลิกเดียวเพื่อกรอก -->
+      <div style="background: hsl(210, 45%, 97%); border: 1.5px dashed var(--hydro-blue); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <div>
+          <div style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;">รหัสผ่านเจ้าหน้าที่แอดมิน:</div>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 2px;">
+            <code style="font-size: 1.15rem; font-weight: 800; color: var(--hydro-blue); letter-spacing: 1.5px; background: hsl(0, 0%, 100%); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-color);">admin1784</code>
+            <small style="color: var(--text-secondary); font-size: 0.75rem;">(สายด่วน ปภ. 1784)</small>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 0.78rem; white-space: nowrap; font-weight: 700; color: var(--hydro-blue); border-color: var(--hydro-blue);" onclick="autofillAdminPasscode()">⚡ กดกรอกรหัสทันที</button>
+      </div>
+
       <form id="adminLoginForm" onsubmit="handleAdminLoginSubmit(event)">
         <div class="form-group">
-          <label class="form-label">รหัสผ่านผู้ช่วยเหลือ (Admin Passcode) *</label>
-          <input type="password" id="adminPasscodeInput" class="form-control" placeholder="กรอกรหัสผ่านเจ้าหน้าที่..." required>
+          <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>รหัสผ่านผู้ช่วยเหลือ (Admin Passcode) *</span>
+            <button type="button" id="togglePasscodeVisibilityBtn" style="background: none; border: none; font-size: 0.78rem; color: var(--hydro-blue); cursor: pointer; text-decoration: underline;" onclick="togglePasscodeVisibility()">👁️ แสดงรหัส</button>
+          </label>
+          <input type="password" id="adminPasscodeInput" class="form-control" placeholder="กรอกรหัสผ่านเจ้าหน้าที่ (admin1784)" required>
         </div>
         <div id="adminLoginErrorText" style="color: var(--tier-red-text); font-size: 0.85rem; font-weight: 600; display: none; margin-bottom: 10px;">
-          ✕ รหัสผ่านไม่ถูกต้อง ประชาชนทั่วไปไม่สามารถเข้าใช้งานส่วนนี้ได้
+          ✕ รหัสผ่านไม่ถูกต้อง (รหัสที่ถูกต้องคือ admin1784)
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
           <button type="button" class="btn-secondary" onclick="closeAdminLoginModal()">ยกเลิก</button>
@@ -1392,6 +1408,27 @@
       setTimeout(function () {
         document.getElementById('adminPasscodeInput').focus();
       }, 100);
+    }
+
+    function autofillAdminPasscode() {
+      const input = document.getElementById('adminPasscodeInput');
+      input.value = 'admin1784';
+      input.type = 'text';
+      const toggleBtn = document.getElementById('togglePasscodeVisibilityBtn');
+      if (toggleBtn) toggleBtn.textContent = '🙈 ซ่อนรหัส';
+      input.focus();
+    }
+
+    function togglePasscodeVisibility() {
+      const input = document.getElementById('adminPasscodeInput');
+      const toggleBtn = document.getElementById('togglePasscodeVisibilityBtn');
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (toggleBtn) toggleBtn.textContent = '🙈 ซ่อนรหัส';
+      } else {
+        input.type = 'password';
+        if (toggleBtn) toggleBtn.textContent = '👁️ แสดงรหัส';
+      }
     }
 
     function closeAdminLoginModal() {
