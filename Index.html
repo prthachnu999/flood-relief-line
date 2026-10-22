@@ -349,6 +349,70 @@
       background: hsl(208, 35%, 89%);
     }
 
+    .filter-pills-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .pill-filter-btn {
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 3px hsla(215, 45%, 15%, 0.04);
+    }
+
+    .pill-filter-btn:hover {
+      border-color: var(--hydro-blue);
+      color: var(--hydro-navy);
+      transform: translateY(-1px);
+    }
+
+    .pill-filter-btn.active {
+      background: var(--hydro-navy);
+      color: hsl(0, 0%, 100%);
+      border-color: var(--hydro-navy);
+      box-shadow: 0 2px 8px hsla(215, 80%, 20%, 0.25);
+    }
+
+    .pill-filter-btn .count-badge {
+      background: var(--bg-subtle);
+      color: var(--hydro-navy);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+    }
+
+    .pill-filter-btn.active .count-badge {
+      background: hsla(0, 0%, 100%, 0.22);
+      color: hsl(0, 0%, 100%);
+      border-color: hsla(0, 0%, 100%, 0.3);
+    }
+
+    .btn-action-paid {
+      background: var(--tier-green-bg);
+      color: var(--tier-green-text);
+      border: 1px solid var(--tier-green-border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      text-align: center;
+      display: inline-block;
+    }
+
     .check-row {
       display: flex;
       align-items: center;
@@ -893,6 +957,29 @@
             <button type="button" class="btn-secondary" onclick="loadDashboardData()">🔄 รีเฟรชข้อมูล</button>
           </div>
         </div>
+
+        <div class="filter-pills-row" id="officerStatusPills">
+          <button type="button" id="pillStatusPending" class="pill-filter-btn active" onclick="setOfficerStatusFilter('PENDING', this)">
+            <span>⚡ งานค้าง: รอลงสำรวจ / รอตรวจสอบ</span>
+            <span class="count-badge" id="countBadgePending">0</span>
+          </button>
+          <button type="button" id="pillStatusApproved" class="pill-filter-btn" onclick="setOfficerStatusFilter('APPROVED', this)">
+            <span>✅ อนุมัติแล้ว (รอโอนเงิน)</span>
+            <span class="count-badge" id="countBadgeApproved">0</span>
+          </button>
+          <button type="button" id="pillStatusPaid" class="pill-filter-btn" onclick="setOfficerStatusFilter('PAID', this)">
+            <span>💳 โอนเงินสำเร็จแล้ว</span>
+            <span class="count-badge" id="countBadgePaid">0</span>
+          </button>
+          <button type="button" id="pillStatusAll" class="pill-filter-btn" onclick="setOfficerStatusFilter('ALL', this)">
+            <span>📋 คำร้องทั้งหมด</span>
+            <span class="count-badge" id="countBadgeAll">0</span>
+          </button>
+        </div>
+
+        <div style="background: hsl(210, 45%, 97%); border-left: 4px solid var(--hydro-blue); padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 0.84rem; color: var(--text-secondary);">
+          💡 <strong>การส่งต่องาน (Workflow Handover):</strong> เมื่อลงพื้นที่สำรวจและกด <strong>"อนุมัติวงเงิน"</strong> แล้ว คำร้องจะส่งต่อไปยังแท็บ <strong>"💳 เบิกจ่ายงบ / ส่งธนาคาร"</strong> อัตโนมัติ เพื่อให้ฝ่ายการเงินทำการโอนเงิน PromptPay หรือส่งธนาคารต่อไป
+        </div>
         <div class="table-wrapper">
           <table class="data-table">
             <thead>
@@ -1125,11 +1212,13 @@
       PORTAL_MODE: 'FLOOD_RELIEF_PORTAL_MODE_2569',
       ADMIN_PASSCODE: 'FLOOD_RELIEF_ADMIN_TOKEN_2569',
       ACTIVE_VIEW: 'FLOOD_RELIEF_ACTIVE_VIEW_2569',
-      TIER_FILTER: 'FLOOD_RELIEF_TIER_FILTER_2569'
+      TIER_FILTER: 'FLOOD_RELIEF_TIER_FILTER_2569',
+      STATUS_FILTER: 'FLOOD_RELIEF_STATUS_FILTER_2569'
     };
 
     let activeAdminPasscode = '';
     let isAdminAuthenticated = false;
+    let currentOfficerStatusFilter = 'PENDING';
 
     let cachedRegistrations = [
       {
@@ -1358,6 +1447,26 @@
         }
       }
 
+      const savedStatus = readStorageValue(STORAGE_KEYS.STATUS_FILTER);
+      if (savedStatus) {
+        currentOfficerStatusFilter = savedStatus;
+        const pillMap = {
+          'PENDING': 'pillStatusPending',
+          'APPROVED': 'pillStatusApproved',
+          'PAID': 'pillStatusPaid',
+          'ALL': 'pillStatusAll'
+        };
+        const activePillId = pillMap[savedStatus] || 'pillStatusPending';
+        const activePillEl = document.getElementById(activePillId);
+        if (activePillEl) {
+          const pillButtons = document.querySelectorAll('#officerStatusPills .pill-filter-btn');
+          for (let p = 0; p < pillButtons.length; p++) {
+            pillButtons[p].classList.remove('active');
+          }
+          activePillEl.classList.add('active');
+        }
+      }
+
       const savedMode = readStorageValue(STORAGE_KEYS.PORTAL_MODE);
       const savedPasscode = readStorageValue(STORAGE_KEYS.ADMIN_PASSCODE);
       const savedView = readStorageValue(STORAGE_KEYS.ACTIVE_VIEW);
@@ -1390,6 +1499,20 @@
     function handleTierFilterChange() {
       const selectedTier = document.getElementById('tierFilterSelect').value;
       saveStorageValue(STORAGE_KEYS.TIER_FILTER, selectedTier);
+      renderOfficerTable();
+    }
+
+    function setOfficerStatusFilter(statusKey, btnElement) {
+      currentOfficerStatusFilter = statusKey;
+      saveStorageValue(STORAGE_KEYS.STATUS_FILTER, statusKey);
+
+      const pillButtons = document.querySelectorAll('#officerStatusPills .pill-filter-btn');
+      for (let i = 0; i < pillButtons.length; i++) {
+        pillButtons[i].classList.remove('active');
+      }
+      if (btnElement) {
+        btnElement.classList.add('active');
+      }
       renderOfficerTable();
     }
 
@@ -1681,6 +1804,24 @@
       document.getElementById('kpiReadyPayCount').textContent = (overview.approvedCount || 0) + ' รายการ';
       document.getElementById('kpiPaidCount').textContent = (overview.paidCount || 0) + ' รายการ';
       document.getElementById('kpiPaidTotalThb').textContent = Number(overview.totalPaidBudgetThb || 0).toLocaleString() + ' ฿';
+
+      let pendingCnt = 0;
+      let approvedCnt = 0;
+      let paidCnt = 0;
+      for (let k = 0; k < cachedRegistrations.length; k++) {
+        const itemStatus = cachedRegistrations[k].claimStatus;
+        if (itemStatus === 'รอตรวจสอบ' || itemStatus === 'พักตรวจสอบ (ข้อมูลซ้ำ)') pendingCnt++;
+        else if (itemStatus === 'อนุมัติเยียวยา') approvedCnt++;
+        else if (itemStatus === 'โอนเงินสำเร็จ') paidCnt++;
+      }
+      const bPending = document.getElementById('countBadgePending');
+      const bApproved = document.getElementById('countBadgeApproved');
+      const bPaid = document.getElementById('countBadgePaid');
+      const bAll = document.getElementById('countBadgeAll');
+      if (bPending) bPending.textContent = pendingCnt;
+      if (bApproved) bApproved.textContent = approvedCnt;
+      if (bPaid) bPaid.textContent = paidCnt;
+      if (bAll) bAll.textContent = cachedRegistrations.length;
     }
 
     function getTierBadgeClass(tierText) {
@@ -1728,13 +1869,30 @@
       const filteredList = cachedRegistrations.filter(function (rowItem) {
         const matchesTier = filterTier === 'ALL' || rowItem.priorityTier === filterTier;
         if (!matchesTier) return false;
+
+        let matchesStatus = true;
+        if (currentOfficerStatusFilter === 'PENDING') {
+          matchesStatus = (rowItem.claimStatus === 'รอตรวจสอบ' || rowItem.claimStatus === 'พักตรวจสอบ (ข้อมูลซ้ำ)');
+        } else if (currentOfficerStatusFilter === 'APPROVED') {
+          matchesStatus = (rowItem.claimStatus === 'อนุมัติเยียวยา');
+        } else if (currentOfficerStatusFilter === 'PAID') {
+          matchesStatus = (rowItem.claimStatus === 'โอนเงินสำเร็จ');
+        }
+        if (!matchesStatus) return false;
+
         if (!searchKeyword) return true;
         const combinedText = (rowItem.requestId + ' ' + rowItem.fullname + ' ' + rowItem.addressText + ' ' + rowItem.citizenId).toLowerCase();
         return combinedText.indexOf(searchKeyword) !== -1;
       });
 
       if (filteredList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">ไม่พบรายการคำร้องที่ตรงกับเงื่อนไข</td></tr>';
+        let emptyMessage = 'ไม่พบรายการคำร้องที่ตรงกับเงื่อนไข';
+        if (currentOfficerStatusFilter === 'PENDING') {
+          emptyMessage = '✨ เยี่ยมมาก! ไม่มีงานค้างรอลงสำรวจในขณะนี้';
+        } else if (currentOfficerStatusFilter === 'APPROVED') {
+          emptyMessage = 'ไม่มีรายการที่อนุมัติแล้วค้างอยู่ (ทุกรายการอาจถูกโอนเงินสำเร็จแล้ว)';
+        }
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 30px;">' + emptyMessage + '</td></tr>';
         return;
       }
 
@@ -1746,6 +1904,22 @@
           ? '<br><small style="color:var(--tier-green-text); font-weight:600;">อนุมัติ: ' + Number(rec.approvedRemedyThb).toLocaleString() + ' ฿</small>'
           : '';
 
+        let actionCellHtml = '';
+        if (rec.claimStatus === 'อนุมัติเยียวยา') {
+          actionCellHtml = '<div style="display:flex; flex-direction:column; gap:6px;">' +
+            '<span class="badge badge-green" style="text-align:center; font-size:0.75rem;">✅ ส่งต่อเบิกจ่ายแล้ว</span>' +
+            '<button type="button" class="btn-primary" style="padding:4px 8px; font-size:0.75rem; white-space:nowrap;" onclick="switchAdminView(\'financeView\', document.getElementById(\'adminTab2Btn\'))">💳 ไปหน้าเบิกจ่าย</button>' +
+            '<button type="button" class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; white-space:nowrap;" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">✏️ ดู/แก้ไขผลสำรวจ</button>' +
+            '</div>';
+        } else if (rec.claimStatus === 'โอนเงินสำเร็จ') {
+          actionCellHtml = '<div style="display:flex; flex-direction:column; gap:6px;">' +
+            '<span class="btn-action-paid">🎉 โอนเงินเรียบร้อย</span>' +
+            '<button type="button" class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; white-space:nowrap;" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">🔍 ดูประวัติสำรวจ</button>' +
+            '</div>';
+        } else {
+          actionCellHtml = '<button type="button" class="btn-primary" style="padding:8px 14px; font-size:0.84rem; white-space:nowrap;" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">📝 ลงสำรวจ / อนุมัติ</button>';
+        }
+
         rowsHtml += '<tr>' +
           '<td><strong>' + rec.requestId + '</strong><br><small style="color:var(--text-secondary);">' + rec.createdAt + '</small></td>' +
           '<td><strong>' + rec.fullname + '</strong><br><small style="color:var(--text-secondary);">📞 ' + rec.phoneNumber + '</small><br>' + buildVulnerabilityTags(rec) + '</td>' +
@@ -1753,7 +1927,7 @@
           '<td><strong>' + rec.waterDepthCm + ' ซม.</strong></td>' +
           '<td><span class="badge ' + tierClass + '">' + rec.priorityTier + ' (' + rec.priorityScore + ')</span></td>' +
           '<td><strong>' + rec.claimStatus + '</strong>' + amountLabel + '</td>' +
-          '<td><button class="btn-secondary" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">📝 สำรวจ/อนุมัติ</button></td>' +
+          '<td>' + actionCellHtml + '</td>' +
           '</tr>';
       }
       tbody.innerHTML = rowsHtml;
