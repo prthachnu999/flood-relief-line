@@ -3,6 +3,14 @@ import crypto from 'crypto';
 import { ClaimRegistrationService } from '../relief-claims/claim-registration-service.js';
 import { FlexMessageBuilder } from '../line-messaging/flex-message-builder.js';
 
+function matchEmergencyIntent(textInput: string): boolean {
+  return /ช่วยเหลือ|กู้ภัย|พิกัด|ยังชีพ|น้ำท่วม|ติดค้าง|ฉุกเฉิน/.test(textInput);
+}
+
+function matchHotlineIntent(textInput: string): boolean {
+  return /1784|สายด่วน|โทร|เบอร์/.test(textInput);
+}
+
 export class LineWebhookController {
   constructor(
     private readonly channelSecret: string,
@@ -77,25 +85,32 @@ export class LineWebhookController {
       return;
     }
 
-    if (userMessageText.includes('ช่วยเหลือ') || userMessageText.includes('กู้ภัย')) {
+    if (matchEmergencyIntent(userMessageText)) {
       await this.sendLineReply(replyToken, [
         {
           type: 'text',
-          text: '🚨 ศูนย์รับแจ้งเหตุน้ำท่วมฉุกเฉิน\nกรุณากดเครื่องหมาย [+] มุมล่างซ้ายของ LINE แล้วเลือก "ตำแหน่งที่ตั้ง" (Location) เพื่อส่งพิกัดบ้านที่ติดค้างให้ทีมกู้ภัย ปภ. เข้าช่วยเหลือทันที'
+          text: '🚨 ศูนย์รับแจ้งเหตุน้ำท่วมและขอความช่วยเหลือด่วน\n\n• ขอเรือกู้ภัย / ถุงยังชีพ / อพยพฉุกเฉิน\n• กรุณากดปุ่ม [+] ที่มุมล่างซ้าย แล้วเลือก "ตำแหน่งที่ตั้ง" (Location) เพื่อส่งพิกัดบ้านที่ติดค้างให้เจ้าหน้าที่เข้าช่วยทันที\n\nหรือติดต่อสายด่วนนิรภัย ปภ. โทร 1784 (โทรฟรี 24 ชม.)'
         }
       ]);
       return;
     }
 
-    if (userMessageText.includes('1784') || userMessageText.includes('สายด่วน')) {
+    if (matchHotlineIntent(userMessageText)) {
       await this.sendLineReply(replyToken, [
         {
           type: 'text',
-          text: '📞 สายด่วน ปภ. 1784 (โทรฟรีตลอด 24 ชั่วโมง)\nศูนย์เตือนภัยพิบัติแห่งชาติ กรมป้องกันและบรรเทาสาธารณภัย'
+          text: '📞 สายด่วนนิรภัย ปภ. 1784 (โทรฟรี 24 ชั่วโมง)\n\n• กรมป้องกันและบรรเทาสาธารณภัย (ปภ.)\n• ศูนย์เตือนภัยพิบัติแห่งชาติ\n• แจ้งเหตุด่วนทาง LINE ปภ.: @1784DDPM'
         }
       ]);
       return;
     }
+
+    await this.sendLineReply(replyToken, [
+      {
+        type: 'text',
+        text: 'ศูนย์ช่วยเหลือเยียวยาผู้ประสบอุทกภัย ยินดีให้บริการครับ\n\nกรุณาเลือกเมนูจากแถบด้านล่าง:\n• ยื่นขอเงินเยียวยา (5,000 - 9,000 บ.)\n• ตรวจสอบสถานะคำร้อง (พิมพ์ FL-XXXX)\n• แจ้งพิกัดน้ำท่วม / ขอถุงยังชีพ\n• สายด่วน 1784'
+      }
+    ]);
   }
 
   private async sendLineReply(replyToken: string, messageCollection: any[]): Promise<void> {
