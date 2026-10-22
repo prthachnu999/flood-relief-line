@@ -54,12 +54,31 @@ export class LineWebhookController {
   }
 
   private async routeSingleEvent(singleEvent: any): Promise<void> {
-    if (singleEvent.type !== 'message' || singleEvent.message.type !== 'text') {
+    if (singleEvent.type !== 'message') {
+      return;
+    }
+
+    const replyToken: string = singleEvent.replyToken;
+
+    if (singleEvent.message.type === 'location') {
+      const locationLatitude = singleEvent.message.latitude;
+      const locationLongitude = singleEvent.message.longitude;
+      const locationAddress = singleEvent.message.address || 'จุดพิกัดดาวเทียม';
+
+      await this.sendLineReply(replyToken, [
+        {
+          type: 'text',
+          text: `📍 ได้รับพิกัดขอความช่วยเหลือเรียบร้อยแล้ว!\n\n• ละติจูด: ${locationLatitude}\n• ลองจิจูด: ${locationLongitude}\n• บริเวณ: ${locationAddress}\n\nระบบได้ส่งต่อพิกัดนี้เข้าศูนย์กู้ภัย ปภ. ประจำพื้นที่เพื่อจัดสรรเรือและถุงยังชีพเข้าช่วยเหลือแล้วครับ`
+        }
+      ]);
+      return;
+    }
+
+    if (singleEvent.message.type !== 'text') {
       return;
     }
 
     const userMessageText: string = singleEvent.message.text.trim();
-    const replyToken: string = singleEvent.replyToken;
 
     if (userMessageText.startsWith('FL-')) {
       const claimRecord = this.claimService.findClaimById(userMessageText);
