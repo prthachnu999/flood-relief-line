@@ -56,6 +56,20 @@
 
     <!-- View 1: Register Claim -->
     <section id="registerView" class="space-y-4">
+      <!-- Emergency SOS Banner (Appears when mode=emergency) -->
+      <div id="emergencyModeBanner" class="hidden p-4 rounded-2xl bg-gradient-to-r from-red-950/80 to-rose-900/60 border border-red-500/50 shadow-xl space-y-2.5">
+        <div class="flex items-center gap-2 text-red-400 font-bold text-sm">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+          🚨 โหมดขอกู้ภัยฉุกเฉิน (One-Tap Emergency SOS)
+        </div>
+        <p class="text-xs text-red-200/90 leading-relaxed">
+          ระบบจับพิกัดดาวเทียม GPS และดึงชื่อจาก LINE ของคุณให้อัตโนมัติ สามารถกดปุ่มส่งกู้ภัยทันทีด้านล่างได้เลยโดยไม่ต้องพิมพ์ใหม่
+        </p>
+        <button type="button" onclick="submitQuickEmergencySos()" 
+          class="w-full py-3.5 px-4 rounded-xl bg-red-600 hover:bg-red-500 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-red-600/40 flex items-center justify-center gap-2 transition-all">
+          <span>🆘 ส่งพิกัด GPS ขอกู้ภัยด่วนทันที</span>
+        </button>
+      </div>
       <div class="glass-panel p-4 rounded-2xl shadow-xl space-y-3.5">
         <h2 class="text-xs font-semibold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
@@ -160,8 +174,32 @@
 
     async function initializeLiff() {
       try {
+        const savedPhone = localStorage.getItem('floodRelief_telephone');
+        const savedCitizenId = localStorage.getItem('floodRelief_citizenId');
+        const savedAddress = localStorage.getItem('floodRelief_address');
+        if (savedPhone && document.getElementById('telephoneInput')) {
+          document.getElementById('telephoneInput').value = savedPhone;
+        }
+        if (savedCitizenId && document.getElementById('citizenIdInput')) {
+          document.getElementById('citizenIdInput').value = savedCitizenId;
+        }
+        if (savedAddress && document.getElementById('addressInput')) {
+          document.getElementById('addressInput').value = savedAddress;
+        }
+      } catch (_) {}
+
+      try {
         const queryParams = new URLSearchParams(window.location.search);
         const activeLiffId = queryParams.get('liffId') || '2012152546-GBk9OvJ0';
+        const isEmergency = queryParams.get('mode') === 'emergency' || queryParams.get('emergency') === '1';
+
+        if (isEmergency) {
+          const emergencyBanner = document.getElementById('emergencyModeBanner');
+          if (emergencyBanner) {
+            emergencyBanner.classList.remove('hidden');
+          }
+          detectGpsLocation();
+        }
         
         if (window.liff) {
           await liff.init({ liffId: activeLiffId }).catch(() => {});
@@ -172,6 +210,11 @@
             document.getElementById('userAvatar').src = profile.pictureUrl || '';
             document.getElementById('userBadge').classList.remove('hidden');
             document.getElementById('userBadge').classList.add('flex');
+
+            const fullNameElem = document.getElementById('fullNameInput');
+            if (fullNameElem && !fullNameElem.value) {
+              fullNameElem.value = profile.displayName || '';
+            }
           }
         }
       } catch (err) {
@@ -260,6 +303,12 @@
       };
 
       try {
+        localStorage.setItem('floodRelief_citizenId', nationalId);
+        localStorage.setItem('floodRelief_telephone', telephone);
+        localStorage.setItem('floodRelief_address', address);
+      } catch (_) {}
+
+      try {
         const response = await fetch('/api/v1/claims', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -269,6 +318,59 @@
         const createdClaim = await response.json();
         alert(`ยื่นคำขอสำเร็จ! รหัสคำร้องของคุณคือ: ${createdClaim.claimId}\nระบบจะส่งการแจ้งเตือนความคืบหน้าผ่าน LINE Chat`);
         
+        if (window.liff && liff.isInClient()) {
+          liff.closeWindow();
+        } else {
+          document.getElementById('searchClaimIdInput').value = createdClaim.claimId;
+          switchView('track');
+          queryClaimStatus();
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+      }
+    }
+
+    async function submitQuickEmergencySos() {
+      const fullName = (document.getElementById('fullNameInput').value || activeLineProfile.displayName || 'ผู้ประสบภัยฉุกเฉิน').trim();
+      const telephone = document.getElementById('telephoneInput').value.trim() || 'ไม่ได้ระบุ';
+      const address = document.getElementById('addressInput').value.trim() || 'พิกัดขอกู้ภัยฉุกเฉินผ่าน LINE';
+      const nationalId = document.getElementById('citizenIdInput').value.trim() || ('SOS-' + Date.now().toString().slice(-6));
+
+      if (!activeGpsCoords) {
+        alert('ระบบกำลังดึงพิกัด GPS โปรดอนุญาตสิทธิ์เข้าถึงตำแหน่งที่ตั้ง หรือรอสักครู่...');
+        detectGpsLocation();
+        return;
+      }
+
+      try {
+        if (telephone !== 'ไม่ได้ระบุ') {
+          localStorage.setItem('floodRelief_telephone', telephone);
+        }
+      } catch (_) {}
+
+      const payload = {
+        lineUserId: activeLineProfile.userId,
+        citizenNationalId: nationalId,
+        claimantFullName: fullName,
+        contactTelephone: telephone,
+        latitude: activeGpsCoords.latitude,
+        longitude: activeGpsCoords.longitude,
+        accuracyMeters: activeGpsCoords.accuracyMeters,
+        residentialAddress: address,
+        disasterCategory: 'WATERLOGGED_OVER_7_DAYS',
+        damagePhotoUrls: []
+      };
+
+      try {
+        const response = await fetch('/api/v1/claims', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const createdClaim = await response.json();
+        alert(`🚨 บันทึกพิกัดกู้ภัยฉุกเฉินสำเร็จ!\nรหัสคำร้อง: ${createdClaim.claimId}\nทีมกู้ภัย ปภ. ได้รับพิกัดดาวเทียมของคุณแล้ว`);
+
         if (window.liff && liff.isInClient()) {
           liff.closeWindow();
         } else {

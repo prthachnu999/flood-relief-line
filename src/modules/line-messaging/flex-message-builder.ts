@@ -318,7 +318,7 @@ export class FlexMessageBuilder {
               action: {
                 type: 'uri',
                 label: '📍 ส่งพิกัด GPS ขอกู้ภัยทันที',
-                uri: liffAppUrl
+                uri: `${liffAppUrl}?mode=emergency`
               }
             },
             {

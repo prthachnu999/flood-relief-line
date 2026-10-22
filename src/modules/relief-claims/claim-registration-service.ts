@@ -11,7 +11,8 @@ export class ClaimRegistrationService {
     if (!submissionInput.lineUserId) {
       throw new Error('MISSING_LINE_USER_ID: Line user identity is mandatory');
     }
-    if (!/^\d{13}$/.test(submissionInput.citizenNationalId)) {
+    const isEmergencySos = submissionInput.citizenNationalId.startsWith('SOS-');
+    if (!isEmergencySos && !/^\d{13}$/.test(submissionInput.citizenNationalId)) {
       throw new Error('INVALID_CITIZEN_ID: National ID must be 13 digits');
     }
     if (submissionInput.latitude < -90 || submissionInput.latitude > 90) {
