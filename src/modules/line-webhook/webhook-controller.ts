@@ -4,7 +4,7 @@ import { ClaimRegistrationService } from '../relief-claims/claim-registration-se
 import { FlexMessageBuilder, LiveSheetClaimRecord } from '../line-messaging/flex-message-builder.js';
 
 function matchEmergencyIntent(textInput: string): boolean {
-  return /ช่วยเหลือ|กู้ภัย|พิกัด|ยังชีพ|น้ำท่วม|ติดค้าง|ฉุกเฉิน/.test(textInput);
+  return /ช่วยเหลือ|กู้ภัย|พิกัด|ยังชีพ|น้ำท่วม|ติดค้าง|ฉุกเฉิน|หมุด|ตำแหน่ง/.test(textInput);
 }
 
 function matchHotlineIntent(textInput: string): boolean {

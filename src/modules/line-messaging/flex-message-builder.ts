@@ -298,55 +298,128 @@ export class FlexMessageBuilder {
           contents: [
             {
               type: 'text',
-              text: 'ระบบได้รับแจ้งเหตุเรียบร้อยแล้ว',
+              text: '📍 วิธีส่งพิกัดกู้ภัยในแชทนี้ (เร็วที่สุด ไม่ต้องพิมพ์):',
               weight: 'bold',
-              size: 'md',
-              color: '#0F172A'
+              size: 'sm',
+              color: '#0F172A',
+              wrap: true
             },
             {
-              type: 'text',
-              text: 'โปรดแตะปุ่มด้านล่างเพื่อส่งพิกัดดาวเทียม ทีมกู้ภัย ปภ. จะได้รับตำแหน่งที่แม่นยำที่สุด:',
-              wrap: true,
-              size: 'xs',
-              color: '#64748B'
+              type: 'box',
+              layout: 'vertical',
+              backgroundColor: '#FEF2F2',
+              borderColor: '#FECACA',
+              borderWidth: '1px',
+              cornerRadius: '12px',
+              paddingAll: '14px',
+              spacing: 'sm',
+              contents: [
+                {
+                  type: 'box',
+                  layout: 'horizontal',
+                  spacing: 'md',
+                  contents: [
+                    {
+                      type: 'text',
+                      text: '1️⃣',
+                      size: 'sm',
+                      flex: 0
+                    },
+                    {
+                      type: 'text',
+                      text: 'แตะปุ่ม [+] ที่มุมซ้ายล่างของแชทนี้',
+                      size: 'xs',
+                      color: '#1E293B',
+                      weight: 'bold',
+                      wrap: true,
+                      flex: 1
+                    }
+                  ]
+                },
+                {
+                  type: 'box',
+                  layout: 'horizontal',
+                  spacing: 'md',
+                  contents: [
+                    {
+                      type: 'text',
+                      text: '2️⃣',
+                      size: 'sm',
+                      flex: 0
+                    },
+                    {
+                      type: 'text',
+                      text: 'เลือกเมนู 📍 "ตำแหน่งที่ตั้ง" (Location)',
+                      size: 'xs',
+                      color: '#1E293B',
+                      weight: 'bold',
+                      wrap: true,
+                      flex: 1
+                    }
+                  ]
+                },
+                {
+                  type: 'box',
+                  layout: 'horizontal',
+                  spacing: 'md',
+                  contents: [
+                    {
+                      type: 'text',
+                      text: '3️⃣',
+                      size: 'sm',
+                      flex: 0
+                    },
+                    {
+                      type: 'text',
+                      text: 'แตะ "แชร์ตำแหน่งที่ตั้งนี้" ส่งเข้าแชทได้ทันที',
+                      size: 'xs',
+                      color: '#1E293B',
+                      weight: 'bold',
+                      wrap: true,
+                      flex: 1
+                    }
+                  ]
+                },
+                {
+                  type: 'box',
+                  layout: 'vertical',
+                  backgroundColor: '#FFFFFF',
+                  cornerRadius: '6px',
+                  paddingAll: '8px',
+                  margin: 'xs',
+                  contents: [
+                    {
+                      type: 'text',
+                      text: '⚡ ระบบจะดึงชื่อ LINE + พิกัดดาวเทียม บันทึกเข้าระบบกู้ภัย ปภ. ทันทีโดยไม่ต้องพิมพ์ข้อมูล',
+                      wrap: true,
+                      size: 'xxs',
+                      color: '#DC2626'
+                    }
+                  ]
+                }
+              ]
             },
             {
               type: 'button',
               style: 'primary',
-              color: '#DC2626',
+              color: '#0284C7',
               height: 'md',
               action: {
                 type: 'uri',
-                label: '📍 ส่งพิกัด GPS ขอกู้ภัยทันที',
-                uri: `${liffAppUrl}?mode=emergency`
+                label: '📞 โทรสายด่วนนิรภัย 1784 (โทรฟรี)',
+                uri: 'tel:1784'
               }
             },
             {
               type: 'button',
               style: 'secondary',
               height: 'md',
-              color: '#0284C7',
+              color: '#2563EB',
               action: {
                 type: 'uri',
-                label: '📞 โทรสายด่วนนิรภัย 1784 (ฟรี)',
-                uri: 'tel:1784'
+                label: '🌐 หรือเปิดหน้าเว็บเพื่อส่งพิกัด',
+                uri: `${liffAppUrl}?mode=emergency`
               }
-            },
-            {
-              type: 'box',
-              layout: 'vertical',
-              backgroundColor: '#F1F5F9',
-              cornerRadius: '8px',
-              paddingAll: '10px',
-              contents: [
-                {
-                  type: 'text',
-                  text: '💡 ทางเลือกเสริม: กดปุ่ม [+] ซ้ายล่างใน LINE แล้วเลือก "ตำแหน่งที่ตั้ง" เพื่อส่งพิกัดเข้าแชทได้ทันที',
-                  wrap: true,
-                  size: 'xxs',
-                  color: '#475569'
-                }
-              ]
             }
           ]
         }
