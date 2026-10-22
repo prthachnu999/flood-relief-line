@@ -130,7 +130,7 @@ const TABLE_SCHEMAS = {
   tbl_disbursements: {
     sheetName: '3_ประวัติการโอนเงินเยียวยา',
     tabColor: '#10B981',
-    textFormatColumnIndices: [1, 2, 3, 5, 7],
+    textFormatColumnIndices: [1, 2, 3, 5, 7, 9],
     headers: [
       'รหัสรายการโอน',
       'รหัสคำร้องอ้างอิง',
@@ -139,7 +139,8 @@ const TABLE_SCHEMAS = {
       'เลขอ้างอิงธุรกรรมธนาคาร',
       'จำนวนเงินที่โอนจริง (บาท)',
       'วันเวลาที่โอนเงิน',
-      'เจ้าหน้าที่การเงิน'
+      'เจ้าหน้าที่การเงิน',
+      'หลักฐานสลิปโอนเงิน'
     ],
     dropdownValidations: [
       {
@@ -389,6 +390,10 @@ function fetchEvidenceGalleryImages(housePhotoUrl, waterPhotoUrl) {
     houseImageSrc: resolveDriveUrlToDataUri(housePhotoUrl),
     waterImageSrc: resolveDriveUrlToDataUri(waterPhotoUrl)
   };
+}
+
+function fetchSingleImageUri(rawUrl) {
+  return resolveDriveUrlToDataUri(rawUrl);
 }
 
 function sanitizeNumericDigits(rawInput) {
@@ -942,7 +947,8 @@ function readAllDisbursements(disbursementSheet) {
   if (!disbursementSheet || disbursementSheet.getLastRow() <= 1) {
     return [];
   }
-  const rawRows = disbursementSheet.getRange(2, 1, disbursementSheet.getLastRow() - 1, 8).getValues();
+  const maxCols = Math.max(9, disbursementSheet.getLastColumn());
+  const rawRows = disbursementSheet.getRange(2, 1, disbursementSheet.getLastRow() - 1, maxCols).getValues();
   const list = [];
   for (let idx = 0; idx < rawRows.length; idx++) {
     const rowCells = rawRows[idx];
@@ -954,7 +960,8 @@ function readAllDisbursements(disbursementSheet) {
       transactionRef: String(rowCells[4]),
       disbursedAmountThb: Number(rowCells[5]) || 0,
       disbursedAt: String(rowCells[6]),
-      financeOfficerId: String(rowCells[7])
+      financeOfficerId: String(rowCells[7]),
+      paymentSlipUrl: String(rowCells[8] || '')
     });
   }
   return list.reverse();
@@ -990,6 +997,17 @@ function recordDisbursementPayment(paymentInput, adminPasscode) {
   const batchCode = paymentInput.batchNumber || ('BATCH-' + Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyyMMdd'));
   const txRef = paymentInput.transactionRef || ('KTB-' + new Date().getTime());
 
+  let paymentSlipUrl = '';
+  if (paymentInput.slipBase64) {
+    const evidenceFolder = createRequestEvidenceFolder(paymentInput.requestId);
+    paymentSlipUrl = saveBase64EvidenceImage(
+      evidenceFolder.folderId,
+      'SLIP_' + paymentInput.requestId,
+      paymentInput.slipBase64,
+      paymentInput.slipMimeType || 'image/jpeg'
+    );
+  }
+
   const disburseRow = [
     disbursementId,
     paymentInput.requestId,
@@ -998,7 +1016,8 @@ function recordDisbursementPayment(paymentInput, adminPasscode) {
     txRef,
     approvedThb,
     paidTime,
-    paymentInput.financeOfficerId || 'กง-ปภ-01'
+    paymentInput.financeOfficerId || 'กง-ปภ-01',
+    paymentSlipUrl
   ];
 
   writeFormattedSheetRow(disburseSheet, disburseRow, disburseSchema.textFormatColumnIndices);
@@ -1017,6 +1036,7 @@ function recordDisbursementPayment(paymentInput, adminPasscode) {
     disbursementId: disbursementId,
     requestId: paymentInput.requestId,
     disbursedAmountThb: approvedThb,
+    paymentSlipUrl: paymentSlipUrl,
     claimStatus: CLAIM_STATUS_TH.PAID
   };
 }
