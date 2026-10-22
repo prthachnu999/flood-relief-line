@@ -742,6 +742,102 @@ function findRegistrationByKeyword(searchKeyword) {
   return matchedRecords;
 }
 
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('ระบบช่วยเหลือเยียวยาผู้ประสบอุทกภัย')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function getDashboardOverview() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
+  if (!regSheet) {
+    initializeFloodReliefDatabase();
+    regSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_registrations.sheetName);
+  }
+
+  const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
+  const totalApprovedBudgetThb = sumApprovedBudget(assessmentSheet);
+  const registrationItems = readAllRegistrations(regSheet);
+
+  let redCount = 0;
+  let pendingCount = 0;
+  let approvedCount = 0;
+
+  for (let idx = 0; idx < registrationItems.length; idx++) {
+    const record = registrationItems[idx];
+    if (record.priorityTier === PRIORITY_TIERS_TH.RED) {
+      redCount++;
+    }
+    if (record.claimStatus === CLAIM_STATUS_TH.PENDING) {
+      pendingCount++;
+    }
+    if (record.claimStatus === CLAIM_STATUS_TH.APPROVED || record.claimStatus === CLAIM_STATUS_TH.PAID) {
+      approvedCount++;
+    }
+  }
+
+  return {
+    totalRequests: registrationItems.length,
+    redCount: redCount,
+    pendingCount: pendingCount,
+    approvedCount: approvedCount,
+    totalApprovedBudgetThb: totalApprovedBudgetThb,
+    registrations: registrationItems
+  };
+}
+
+function sumApprovedBudget(assessmentSheet) {
+  if (!assessmentSheet || assessmentSheet.getLastRow() <= 1) {
+    return 0;
+  }
+  const budgetCells = assessmentSheet.getRange(2, 5, assessmentSheet.getLastRow() - 1, 1).getValues();
+  let totalThb = 0;
+  for (let idx = 0; idx < budgetCells.length; idx++) {
+    totalThb += Number(budgetCells[idx][0]) || 0;
+  }
+  return totalThb;
+}
+
+function readAllRegistrations(regSheet) {
+  const lastRow = regSheet.getLastRow();
+  if (lastRow <= 1) {
+    return [];
+  }
+
+  const rawRows = regSheet.getRange(2, 1, lastRow - 1, 24).getValues();
+  const mappedRecords = [];
+
+  for (let idx = 0; idx < rawRows.length; idx++) {
+    const rowCells = rawRows[idx];
+    mappedRecords.push({
+      requestId: String(rowCells[0]),
+      createdAt: String(rowCells[1]),
+      citizenId: String(rowCells[2]),
+      fullname: String(rowCells[3]),
+      phoneNumber: String(rowCells[4]),
+      addressText: 'บ้านเลขที่ ' + rowCells[5] + ' ม.' + rowCells[6] + ' ต.' + rowCells[7] + ' อ.' + rowCells[8],
+      subdistrict: String(rowCells[7]),
+      promptpayNumber: String(rowCells[10]),
+      waterDepthCm: Number(rowCells[11]) || 0,
+      isBedridden: String(rowCells[12]),
+      isIsolated: String(rowCells[15]),
+      gpsLat: String(rowCells[16]),
+      gpsLng: String(rowCells[17]),
+      priorityScore: Number(rowCells[21]) || 0,
+      priorityTier: String(rowCells[22]),
+      claimStatus: String(rowCells[23])
+    });
+  }
+
+  mappedRecords.sort(function (firstItem, secondItem) {
+    return secondItem.priorityScore - firstItem.priorityScore;
+  });
+
+  return mappedRecords;
+}
+
 function testSeedSampleFloodData() {
   initializeFloodReliefDatabase();
 
