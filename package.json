@@ -1,6 +1,7 @@
 {
   "name": "flood-relief-line-system",
   "version": "1.0.0",
+  "type": "module",
   "description": "Flood Relief and Compensation System with LINE Official Account & LIFF Integration",
   "main": "dist/server.js",
   "scripts": {

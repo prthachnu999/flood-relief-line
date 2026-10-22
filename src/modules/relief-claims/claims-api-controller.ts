@@ -16,7 +16,7 @@ export class ClaimsApiController {
   }
 
   public getClaimStatus(incomingRequest: Request, outgoingResponse: Response): void {
-    const targetClaimId = incomingRequest.params.claimId;
+    const targetClaimId = String(incomingRequest.params.claimId ?? '');
     const foundClaim = this.claimService.findClaimById(targetClaimId);
 
     if (!foundClaim) {
@@ -29,7 +29,7 @@ export class ClaimsApiController {
 
   public updateClaimStatus(incomingRequest: Request, outgoingResponse: Response): void {
     try {
-      const targetClaimId = incomingRequest.params.claimId;
+      const targetClaimId = String(incomingRequest.params.claimId ?? '');
       const { claimStatus, approvedCompensationAmount } = incomingRequest.body;
       const updatedClaim = this.claimService.updateClaimStatus(
         targetClaimId,
