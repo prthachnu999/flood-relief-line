@@ -561,6 +561,9 @@
       border-radius: 16px;
       max-width: 540px;
       width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       padding: 24px;
       box-shadow: 0 12px 32px hsla(212, 72%, 12%, 0.25);
     }
@@ -720,6 +723,158 @@
       background: hsla(35, 92%, 46%, 0.22);
       color: hsl(0, 0%, 100%);
       font-weight: 600;
+    }
+
+    /* ==================================================== */
+    /* RESPONSIVE MOBILE STYLES (iOS & Android Optimized)    */
+    /* ==================================================== */
+    @media (max-width: 768px) {
+      .hero-banner {
+        padding: 20px 14px 18px;
+      }
+
+      .hero-title {
+        font-size: 1.35rem;
+      }
+
+      .hero-subtitle {
+        font-size: 0.85rem;
+      }
+
+      .emergency-flex {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .nav-tabs {
+        width: 100%;
+        gap: 6px;
+      }
+
+      .tab-btn {
+        flex: 1 1 100%;
+        text-align: center;
+        min-height: 44px;
+        padding: 10px 12px;
+      }
+
+      .form-control {
+        font-size: 16px !important; /* ป้องกัน iOS Safari Auto-Zoom */
+      }
+
+      .card {
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      .section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .section-heading button,
+      .section-heading span:last-child {
+        align-self: flex-start;
+      }
+
+      .modal-backdrop {
+        padding: 10px;
+      }
+
+      .modal-box {
+        padding: 18px 16px;
+        width: 100%;
+        max-height: 90vh;
+      }
+
+      .table-wrapper {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .data-table {
+        min-width: 680px;
+      }
+
+      .filter-pills-row {
+        gap: 6px;
+      }
+
+      .pill-filter-btn {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+        min-height: 38px;
+      }
+
+      /* ปรับแต่ง Lightbox ให้เหมาะกับการสัมผัสบนมือถือ */
+      .lb-topbar {
+        padding: 8px 10px;
+        font-size: 0.82rem;
+      }
+
+      .lb-controls-group {
+        gap: 4px;
+      }
+
+      .lb-tool-btn {
+        padding: 6px 8px;
+        font-size: 0.78rem;
+      }
+
+      .lb-nav-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+      }
+
+      .lb-nav-prev {
+        left: 6px;
+      }
+
+      .lb-nav-next {
+        right: 6px;
+      }
+
+      .lb-bottombar {
+        padding: 8px 10px;
+        gap: 6px;
+      }
+
+      .lb-thumb-btn {
+        padding: 6px 10px;
+        font-size: 0.78rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 1.2rem;
+      }
+
+      .policy-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-primary,
+      .btn-amber {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        min-height: 44px;
+      }
+
+      .emergency-bar .admin-gate-btn,
+      .emergency-bar .admin-logout-btn {
+        width: 100%;
+        text-align: center;
+      }
     }
   </style>
 </head>
@@ -881,10 +1036,13 @@
               <label class="form-label">📷 ภาพถ่ายตัวบ้านขณะถูกน้ำท่วมหรือร่องรอยความเสียหาย</label>
               <input type="file" id="photoHouseInput" class="form-control" accept="image/*" onchange="previewSelectedEvidencePhoto(this, 'housePreviewBox', 'housePreviewImg')">
               <div id="housePreviewBox" class="intake-preview-box">
-                <img id="housePreviewImg" src="" alt="ตัวอย่างภาพบ้าน" onclick="openIntakePreviewLightbox(0)">
-                <div>
+                <img id="housePreviewImg" src="" alt="ตัวอย่างภาพบ้าน" onclick="openIntakePreviewLightbox(0)" title="คลิกเพื่อขยายดูภาพ">
+                <div style="flex: 1;">
                   <div style="font-size:0.84rem; font-weight:600; color:var(--hydro-navy);">ภาพสภาพบ้านที่เลือกไว้</div>
-                  <button type="button" class="btn-secondary" style="padding:3px 10px; font-size:0.76rem; margin-top:4px;" onclick="openIntakePreviewLightbox(0)">🔍 กดเปิดดูภาพ / ซูมขยาย</button>
+                  <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary" style="padding:4px 10px; font-size:0.78rem;" onclick="openIntakePreviewLightbox(0)">🔍 ดูภาพ / ซูมขยาย</button>
+                    <button type="button" class="btn-secondary" style="padding:4px 10px; font-size:0.78rem; color: var(--tier-red-text); border-color: var(--tier-red-border);" onclick="clearEvidencePhoto('house')">🗑️ เอารูปออก</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -892,10 +1050,13 @@
               <label class="form-label">📷 ภาพถ่ายระดับน้ำท่วมขัง / ทรัพย์สินเสียหาย</label>
               <input type="file" id="photoWaterInput" class="form-control" accept="image/*" onchange="previewSelectedEvidencePhoto(this, 'waterPreviewBox', 'waterPreviewImg')">
               <div id="waterPreviewBox" class="intake-preview-box">
-                <img id="waterPreviewImg" src="" alt="ตัวอย่างภาพระดับน้ำ" onclick="openIntakePreviewLightbox(1)">
-                <div>
+                <img id="waterPreviewImg" src="" alt="ตัวอย่างภาพระดับน้ำ" onclick="openIntakePreviewLightbox(1)" title="คลิกเพื่อขยายดูภาพ">
+                <div style="flex: 1;">
                   <div style="font-size:0.84rem; font-weight:600; color:var(--hydro-navy);">ภาพระดับน้ำที่เลือกไว้</div>
-                  <button type="button" class="btn-secondary" style="padding:3px 10px; font-size:0.76rem; margin-top:4px;" onclick="openIntakePreviewLightbox(1)">🔍 กดเปิดดูภาพ / ซูมขยาย</button>
+                  <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary" style="padding:4px 10px; font-size:0.78rem;" onclick="openIntakePreviewLightbox(1)">🔍 ดูภาพ / ซูมขยาย</button>
+                    <button type="button" class="btn-secondary" style="padding:4px 10px; font-size:0.78rem; color: var(--tier-red-text); border-color: var(--tier-red-border);" onclick="clearEvidencePhoto('water')">🗑️ เอารูปออก</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -970,6 +1131,10 @@
           <button type="button" id="pillStatusPaid" class="pill-filter-btn" onclick="setOfficerStatusFilter('PAID', this)">
             <span>💳 โอนเงินสำเร็จแล้ว</span>
             <span class="count-badge" id="countBadgePaid">0</span>
+          </button>
+          <button type="button" id="pillStatusRejected" class="pill-filter-btn" onclick="setOfficerStatusFilter('REJECTED', this)">
+            <span>❌ ไม่อนุมัติ / ไม่ผ่านเกณฑ์</span>
+            <span class="count-badge" id="countBadgeRejected">0</span>
           </button>
           <button type="button" id="pillStatusAll" class="pill-filter-btn" onclick="setOfficerStatusFilter('ALL', this)">
             <span>📋 คำร้องทั้งหมด</span>
@@ -1119,36 +1284,74 @@
       </div>
       <form id="assessmentForm" onsubmit="submitAssessmentModal(event)">
         <input type="hidden" id="modalRequestId">
+        <input type="hidden" id="modalDecisionType" value="APPROVE">
+
         <div class="form-group">
           <label class="form-label">คำร้องที่ประเมิน</label>
           <input type="text" id="modalRequestDisplay" class="form-control" readonly>
         </div>
+
         <div class="form-group">
-          <label class="form-label">รหัสเจ้าหน้าที่ผู้สำรวจ *</label>
-          <input type="text" id="modalOfficerId" class="form-control" value="จท-ปภ-01" required>
+          <label class="form-label">ผลการพิจารณาคำร้องภาคสนาม *</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" id="btnDecisionApprove" class="pill-filter-btn active" style="justify-content: center; width: 100%; border-radius: 8px; padding: 10px; font-size: 0.9rem;" onclick="setAssessmentDecision('APPROVE')">
+              ✅ ผ่านเกณฑ์ / อนุมัติเยียวยา
+            </button>
+            <button type="button" id="btnDecisionReject" class="pill-filter-btn" style="justify-content: center; width: 100%; border-radius: 8px; padding: 10px; font-size: 0.9rem;" onclick="setAssessmentDecision('REJECT')">
+              ❌ ไม่ผ่านเกณฑ์ / ปฏิเสธคำร้อง
+            </button>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">ผลการประเมินความเสียหายตามเกณฑ์ราชการ *</label>
-          <select id="modalDamageCategory" class="form-control" required>
-            <option value="เสียหายบางส่วน (น้อย)">เสียหายบางส่วน (น้อย) — อนุมัติ 15,000 บาท</option>
-            <option value="เสียหายบางส่วน (หนัก)">เสียหายบางส่วน (หนัก) — อนุมัติ 30,000 บาท</option>
-            <option value="เสียหายทั้งหลัง">เสียหายทั้งหลัง — อนุมัติ 49,500 บาท</option>
-            <option value="ไม่เข้าเกณฑ์เยียวยา">ไม่เข้าเกณฑ์เยียวยา — ไม่อนุมัติ (0 บาท)</option>
-          </select>
+
+        <div id="approveCriteriaBox">
+          <div class="form-group">
+            <label class="form-label">ระดับความเสียหายตามเกณฑ์ราชการ *</label>
+            <select id="modalDamageCategory" class="form-control">
+              <option value="เสียหายบางส่วน (น้อย)">เสียหายบางส่วน (น้อย) — อนุมัติ 15,000 บาท</option>
+              <option value="เสียหายบางส่วน (หนัก)">เสียหายบางส่วน (หนัก) — อนุมัติ 30,000 บาท</option>
+              <option value="เสียหายทั้งหลัง">เสียหายทั้งหลัง — อนุมัติ 49,500 บาท</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="check-row">
+              <input type="checkbox" id="modalReliefDelivered" checked>
+              <span>📦 มอบถุงยังชีพและน้ำดื่มบรรเทาทุกข์เบื้องต้นแล้ว</span>
+            </label>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="check-row">
-            <input type="checkbox" id="modalReliefDelivered" checked>
-            <span>📦 มอบถุงยังชีพและน้ำดื่มบรรเทาทุกข์เบื้องต้นแล้ว</span>
-          </label>
+
+        <div id="rejectCriteriaBox" style="display: none; background: var(--tier-red-bg); border: 1.5px solid var(--tier-red-border); border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label class="form-label" style="color: var(--tier-red-text); font-weight: 700;">ระบุเหตุผลที่ไม่อนุมัติ (ปฏิเสธคำร้อง) *</label>
+            <select id="modalRejectionReason" class="form-control">
+              <option value="ไม่อยู่ในพื้นที่ประกาศเขตภัยพิบัติน้ำท่วม">1. ไม่อยู่ในพื้นที่ประกาศเขตภัยพิบัติน้ำท่วม</option>
+              <option value="ระดับน้ำท่วมและความเสียหายไม่ถึงเกณฑ์ขั้นต่ำ">2. ระดับน้ำท่วมและความเสียหายไม่ถึงเกณฑ์ขั้นต่ำ</option>
+              <option value="ไม่ใช่ที่อยู่อาศัยประจำ / เป็นบ้านร้างไม่มีผู้อยู่จริง">3. ไม่ใช่ที่อยู่อาศัยประจำ / เป็นบ้านร้างไม่มีผู้อยู่จริง</option>
+              <option value="ภาพถ่ายหลักฐานไม่ตรงกับสถานที่จริงหรือไม่ชัดเจน">4. ภาพถ่ายหลักฐานไม่ตรงกับสถานที่จริงหรือไม่ชัดเจน</option>
+              <option value="ข้อมูลซ้ำซ้อนกับผู้แทนครัวเรือนที่ได้รับการเยียวยาแล้ว">5. ข้อมูลซ้ำซ้อนกับผู้แทนครัวเรือนที่ได้รับการเยียวยาแล้ว</option>
+              <option value="เอกสารสิทธิ์หรือหลักฐานแสดงตนไม่ถูกต้อง">6. เอกสารสิทธิ์หรือหลักฐานแสดงตนไม่ถูกต้อง</option>
+              <option value="อื่นๆ (ระบุในบันทึกเพิ่มเติม)">7. อื่นๆ (ระบุในบันทึกเพิ่มเติม)</option>
+            </select>
+          </div>
+          <small style="color: var(--tier-red-text); font-weight: 500;">
+            ⚠️ คำร้องนี้จะถูกบันทึกเป็น <strong>"ไม่อนุมัติ"</strong> วงเงิน 0 บาท และแสดงเหตุผลให้ประชาชนเห็นในหน้าติดตามสถานะ
+          </small>
         </div>
-        <div class="form-group">
-          <label class="form-label">บันทึกการตรวจสอบภาคสนาม</label>
-          <input type="text" id="modalInspectorNotes" class="form-control" placeholder="ระบุรายละเอียดความเสียหายที่พบ...">
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">รหัสเจ้าหน้าที่ผู้สำรวจ *</label>
+            <input type="text" id="modalOfficerId" class="form-control" value="จท-ปภ-01" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">บันทึกเพิ่มเติม (ถ้ามี)</label>
+            <input type="text" id="modalInspectorNotes" class="form-control" placeholder="หมายเหตุหรือรายละเอียดเพิ่มเติม...">
+          </div>
         </div>
+
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
           <button type="button" class="btn-secondary" onclick="closeAssessmentModal()">ยกเลิก</button>
-          <button type="submit" id="modalSaveBtn" class="btn-primary">ยืนยันผลสำรวจ & อนุมัติสิทธิ์</button>
+          <button type="submit" id="modalSaveBtn" class="btn-primary">✅ ยืนยันอนุมัติสิทธิ์เยียวยา</button>
         </div>
       </form>
     </div>
@@ -1199,8 +1402,12 @@
             <button type="button" class="btn-secondary" onclick="document.getElementById('payModalSlipFileInput').click()">📁 เลือกรูปภาพสลิปโอนเงิน</button>
             <div id="paySlipPreviewBox" style="margin-top: 10px; display: none;">
               <img id="paySlipPreviewImg" src="" alt="พรีวิวสลิป" style="max-height: 180px; max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px hsla(0,0,0,0.1); cursor: pointer;" onclick="openSelectedSlipLightbox()" title="คลิกเพื่อขยายดูสลิป">
-              <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 5px;">
-                <span id="paySlipFileNameText"></span> • <a href="javascript:void(0)" onclick="openSelectedSlipLightbox()" style="color:var(--hydro-blue); font-weight:600;">🔍 กดเพื่อซูมดูสลิป</a>
+              <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 6px;">
+                <span id="paySlipFileNameText" style="font-weight: 600; color: var(--hydro-navy);"></span>
+              </div>
+              <div style="display: flex; justify-content: center; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 0.78rem;" onclick="openSelectedSlipLightbox()">🔍 ซูมดูสลิปขยายเต็มจอ</button>
+                <button type="button" class="btn-secondary" style="padding: 4px 12px; font-size: 0.78rem; color: var(--tier-red-text); border-color: var(--tier-red-border);" onclick="clearPaymentSlipFile()">🗑️ เอารูปสลิปออก</button>
               </div>
             </div>
           </div>
@@ -1540,6 +1747,7 @@
           'PENDING': 'pillStatusPending',
           'APPROVED': 'pillStatusApproved',
           'PAID': 'pillStatusPaid',
+          'REJECTED': 'pillStatusRejected',
           'ALL': 'pillStatusAll'
         };
         const activePillId = pillMap[savedStatus] || 'pillStatusPending';
@@ -1768,6 +1976,8 @@
             document.getElementById('floodRegistrationForm').reset();
             checkNationalIdLive('');
             recalculateLiveTriage();
+            clearEvidencePhoto('house');
+            clearEvidencePhoto('water');
             showBannerMessage(
               'บันทึกคำร้องสำเร็จ! รหัสคำร้อง: ' + createdOutcome.requestId +
               ' | ความเร่งด่วน: ' + createdOutcome.priorityTier +
@@ -1784,6 +1994,8 @@
       } else {
         submitBtn.disabled = false;
         submitBtn.textContent = '📨 ยืนยันการส่งคำร้องขอรับเงินเยียวยา';
+        clearEvidencePhoto('house');
+        clearEvidencePhoto('water');
         showBannerMessage('โหมดแสดงตัวอย่างบนเครื่อง: เมื่อรันบน Google Apps Script ระบบจะบันทึกลง Google Sheets ทันที', false);
       }
     }
@@ -1831,19 +2043,35 @@
       for (let i = 0; i < matchedRows.length; i++) {
         const rec = matchedRows[i];
         const tierClass = getTierBadgeClass(rec.priorityTier);
-        const remedyText = (Number(rec.approvedRemedyThb) > 0)
-          ? '<span style="color: var(--tier-green-text); font-weight: 700;">' + Number(rec.approvedRemedyThb).toLocaleString() + ' บาท</span>'
-          : 'อยู่ระหว่างรอการประเมินวงเงิน';
+
+        let remedyText = '';
+        let statusBadgeHtml = '';
+
+        if (rec.claimStatus === 'ไม่อนุมัติ') {
+          statusBadgeHtml = '<span class="badge badge-red">❌ ไม่ผ่านเกณฑ์เยียวยา</span>';
+          remedyText = '<span style="color: var(--tier-red-text); font-weight: 700;">ไม่ได้รับสิทธิ์เยียวยา (0 บาท)</span>';
+          if (rec.assessmentNotes) {
+            remedyText += '<div style="margin-top:8px; padding:10px 14px; background:var(--tier-red-bg); border:1px solid var(--tier-red-border); border-radius:8px; color:var(--tier-red-text); font-size:0.85rem;">' +
+              '<strong>เหตุผลการพิจารณา:</strong> ' + rec.assessmentNotes +
+              '<br><small style="color:var(--text-secondary); margin-top:4px; display:inline-block;">หากต้องการสอบถามเพิ่มเติมหรือยื่นอุทธรณ์ สามารถติดต่อศูนย์ช่วยเหลือฯ สายด่วน ปภ. 1784</small></div>';
+          }
+        } else if (Number(rec.approvedRemedyThb) > 0) {
+          statusBadgeHtml = '<span class="badge badge-green">✅ อนุมัติเยียวยาแล้ว (' + rec.claimStatus + ')</span>';
+          remedyText = '<span style="color: var(--tier-green-text); font-weight: 700;">' + Number(rec.approvedRemedyThb).toLocaleString() + ' บาท</span>';
+        } else {
+          statusBadgeHtml = '<span class="badge ' + tierClass + '">สถานะคำร้อง: ' + rec.claimStatus + '</span>';
+          remedyText = 'อยู่ระหว่างรอเจ้าหน้าที่ลงสำรวจประเมินวงเงิน';
+        }
 
         htmlBuffer += '<div style="padding: 18px; border: 1.5px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; background: var(--bg-subtle);">' +
           '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
           '<strong style="font-size:1.05rem; color:var(--hydro-navy);">รหัสคำร้อง: ' + rec.requestId + ' — ' + rec.fullname + '</strong>' +
-          '<span class="badge ' + tierClass + '">สถานะคำร้อง: ' + rec.claimStatus + '</span>' +
+          statusBadgeHtml +
           '</div>' +
           '<div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 8px;">' +
           '📍 พื้นที่: ' + (rec.addressText || ('ต.' + rec.subdistrict)) +
           ' | ระดับความเร่งด่วน: <strong>' + rec.priorityTier + '</strong> (' + rec.priorityScore + ' คะแนน)' +
-          '<br>💰 วงเงินเยียวยาที่ได้รับอนุมัติ: ' + remedyText + ' | ยื่นเมื่อ: ' + rec.createdAt +
+          '<br>💰 วงเงินเยียวยา: ' + remedyText + ' | ยื่นเมื่อ: ' + rec.createdAt +
           '</div></div>';
       }
       container.innerHTML = htmlBuffer;
@@ -1894,19 +2122,23 @@
       let pendingCnt = 0;
       let approvedCnt = 0;
       let paidCnt = 0;
+      let rejectedCnt = 0;
       for (let k = 0; k < cachedRegistrations.length; k++) {
         const itemStatus = cachedRegistrations[k].claimStatus;
         if (itemStatus === 'รอตรวจสอบ' || itemStatus === 'พักตรวจสอบ (ข้อมูลซ้ำ)') pendingCnt++;
         else if (itemStatus === 'อนุมัติเยียวยา') approvedCnt++;
         else if (itemStatus === 'โอนเงินสำเร็จ') paidCnt++;
+        else if (itemStatus === 'ไม่อนุมัติ') rejectedCnt++;
       }
       const bPending = document.getElementById('countBadgePending');
       const bApproved = document.getElementById('countBadgeApproved');
       const bPaid = document.getElementById('countBadgePaid');
+      const bRejected = document.getElementById('countBadgeRejected');
       const bAll = document.getElementById('countBadgeAll');
       if (bPending) bPending.textContent = pendingCnt;
       if (bApproved) bApproved.textContent = approvedCnt;
       if (bPaid) bPaid.textContent = paidCnt;
+      if (bRejected) bRejected.textContent = rejectedCnt;
       if (bAll) bAll.textContent = cachedRegistrations.length;
     }
 
@@ -1963,6 +2195,8 @@
           matchesStatus = (rowItem.claimStatus === 'อนุมัติเยียวยา');
         } else if (currentOfficerStatusFilter === 'PAID') {
           matchesStatus = (rowItem.claimStatus === 'โอนเงินสำเร็จ');
+        } else if (currentOfficerStatusFilter === 'REJECTED') {
+          matchesStatus = (rowItem.claimStatus === 'ไม่อนุมัติ');
         }
         if (!matchesStatus) return false;
 
@@ -1977,6 +2211,8 @@
           emptyMessage = '✨ เยี่ยมมาก! ไม่มีงานค้างรอลงสำรวจในขณะนี้';
         } else if (currentOfficerStatusFilter === 'APPROVED') {
           emptyMessage = 'ไม่มีรายการที่อนุมัติแล้วค้างอยู่ (ทุกรายการอาจถูกโอนเงินสำเร็จแล้ว)';
+        } else if (currentOfficerStatusFilter === 'REJECTED') {
+          emptyMessage = 'ไม่มีรายการที่ถูกปฏิเสธ (ไม่มีคำร้องไม่ผ่านเกณฑ์)';
         }
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 30px;">' + emptyMessage + '</td></tr>';
         return;
@@ -2002,8 +2238,13 @@
             '<span class="btn-action-paid">🎉 โอนเงินเรียบร้อย</span>' +
             '<button type="button" class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; white-space:nowrap;" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">🔍 ดูประวัติสำรวจ</button>' +
             '</div>';
+        } else if (rec.claimStatus === 'ไม่อนุมัติ') {
+          actionCellHtml = '<div style="display:flex; flex-direction:column; gap:6px;">' +
+            '<span class="badge badge-red" style="text-align:center; font-size:0.75rem;">❌ ไม่ผ่านเกณฑ์</span>' +
+            '<button type="button" class="btn-secondary" style="padding:4px 8px; font-size:0.75rem; white-space:nowrap;" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">✏️ ทบทวนผล</button>' +
+            '</div>';
         } else {
-          actionCellHtml = '<button type="button" class="btn-primary" style="padding:8px 14px; font-size:0.84rem; white-space:nowrap;" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">📝 ลงสำรวจ / อนุมัติ</button>';
+          actionCellHtml = '<button type="button" class="btn-primary" style="padding:8px 14px; font-size:0.84rem; white-space:nowrap;" onclick="openAssessmentModal(\'' + rec.requestId + '\', \'' + rec.fullname + '\')">📝 ลงสำรวจ / พิจารณา</button>';
         }
 
         rowsHtml += '<tr>' +
@@ -2071,9 +2312,53 @@
       }
     }
 
+    function setAssessmentDecision(decisionType) {
+      document.getElementById('modalDecisionType').value = decisionType;
+      const btnApprove = document.getElementById('btnDecisionApprove');
+      const btnReject = document.getElementById('btnDecisionReject');
+      const approveBox = document.getElementById('approveCriteriaBox');
+      const rejectBox = document.getElementById('rejectCriteriaBox');
+      const saveBtn = document.getElementById('modalSaveBtn');
+
+      if (decisionType === 'REJECT') {
+        btnApprove.classList.remove('active');
+        btnReject.classList.add('active');
+        btnReject.style.background = 'var(--tier-red-text)';
+        btnReject.style.color = '#fff';
+        btnReject.style.borderColor = 'var(--tier-red-text)';
+        approveBox.style.display = 'none';
+        rejectBox.style.display = 'block';
+        saveBtn.className = 'btn-secondary';
+        saveBtn.style.background = 'var(--tier-red-text)';
+        saveBtn.style.color = '#fff';
+        saveBtn.style.borderColor = 'var(--tier-red-text)';
+        saveBtn.textContent = '❌ ยืนยันปฏิเสธคำร้อง (ไม่อนุมัติ)';
+      } else {
+        btnReject.classList.remove('active');
+        btnReject.style.background = '';
+        btnReject.style.color = '';
+        btnReject.style.borderColor = '';
+        btnApprove.classList.add('active');
+        approveBox.style.display = 'block';
+        rejectBox.style.display = 'none';
+        saveBtn.className = 'btn-primary';
+        saveBtn.style.background = '';
+        saveBtn.style.color = '';
+        saveBtn.style.borderColor = '';
+        saveBtn.textContent = '✅ ยืนยันอนุมัติสิทธิ์เยียวยา';
+      }
+    }
+
     function openAssessmentModal(requestId, fullname) {
       document.getElementById('modalRequestId').value = requestId;
       document.getElementById('modalRequestDisplay').value = requestId + ' — ' + fullname;
+
+      const rec = cachedRegistrations.find(function (r) { return r.requestId === requestId; });
+      if (rec && rec.claimStatus === 'ไม่อนุมัติ') {
+        setAssessmentDecision('REJECT');
+      } else {
+        setAssessmentDecision('APPROVE');
+      }
       document.getElementById('assessmentModal').classList.add('open');
     }
 
@@ -2087,11 +2372,16 @@
       saveBtn.disabled = true;
       saveBtn.textContent = 'กำลังบันทึก...';
 
+      const decisionType = document.getElementById('modalDecisionType').value;
+      const isReject = (decisionType === 'REJECT');
+
       const assessmentForm = {
         requestId: document.getElementById('modalRequestId').value,
+        decision: decisionType,
         inspectorOfficerId: document.getElementById('modalOfficerId').value,
-        damageCategory: document.getElementById('modalDamageCategory').value,
-        reliefPackDelivered: document.getElementById('modalReliefDelivered').checked,
+        damageCategory: isReject ? 'ไม่เข้าเกณฑ์เยียวยา' : document.getElementById('modalDamageCategory').value,
+        rejectionReason: isReject ? document.getElementById('modalRejectionReason').value : '',
+        reliefPackDelivered: isReject ? false : document.getElementById('modalReliefDelivered').checked,
         inspectorNotes: document.getElementById('modalInspectorNotes').value
       };
 
@@ -2099,26 +2389,47 @@
         google.script.run
           .withSuccessHandler(function (outcome) {
             saveBtn.disabled = false;
-            saveBtn.textContent = 'ยืนยันผลสำรวจ & อนุมัติสิทธิ์';
             closeAssessmentModal();
-            showBannerMessage(
-              'บันทึกผลสำรวจ ' + outcome.requestId + ' สำเร็จ | สถานะ: ' + outcome.claimStatus +
-              ' | วงเงินอนุมัติ: ' + Number(outcome.approvedRemedyThb).toLocaleString() + ' บาท',
-              false
-            );
+            const msg = outcome.isRejected
+              ? ('บันทึกปฏิเสธคำร้อง ' + outcome.requestId + ' สำเร็จ | สถานะ: ไม่อนุมัติ')
+              : ('บันทึกผลสำรวจ ' + outcome.requestId + ' สำเร็จ | สถานะ: ' + outcome.claimStatus + ' | วงเงินอนุมัติ: ' + Number(outcome.approvedRemedyThb).toLocaleString() + ' บาท');
+            showBannerMessage(msg, false);
             loadDashboardData();
           })
           .withFailureHandler(function (err) {
             saveBtn.disabled = false;
-            saveBtn.textContent = 'ยืนยันผลสำรวจ & อนุมัติสิทธิ์';
-            showBannerMessage(err.message || 'เกิดข้อผิดพลาด', true);
+            saveBtn.textContent = isReject ? '❌ ยืนยันปฏิเสธคำร้อง (ไม่อนุมัติ)' : '✅ ยืนยันอนุมัติสิทธิ์เยียวยา';
+            showBannerMessage(err.message || 'เกิดข้อผิดพลาดในการบันทึกผลสำรวจ', true);
           })
           .recordFieldAssessment(assessmentForm, activeAdminPasscode);
       } else {
         saveBtn.disabled = false;
-        saveBtn.textContent = 'ยืนยันผลสำรวจ & อนุมัติสิทธิ์';
         closeAssessmentModal();
-        showBannerMessage('โหมดตัวอย่าง: บันทึกผลสำรวจเรียบร้อย', false);
+
+        const found = cachedRegistrations.find(function (r) { return r.requestId === assessmentForm.requestId; });
+        if (found) {
+          if (isReject) {
+            found.claimStatus = 'ไม่อนุมัติ';
+            found.approvedRemedyThb = 0;
+            found.assessmentNotes = '[เหตุผลไม่อนุมัติ: ' + assessmentForm.rejectionReason + '] ' + (assessmentForm.inspectorNotes || '');
+          } else {
+            found.claimStatus = 'อนุมัติเยียวยา';
+            const damageCat = assessmentForm.damageCategory;
+            let amt = 15000;
+            if (damageCat.indexOf('หนัก') !== -1) amt = 30000;
+            if (damageCat.indexOf('ทั้งหลัง') !== -1) amt = 49500;
+            found.approvedRemedyThb = amt;
+            found.assessmentNotes = assessmentForm.inspectorNotes || '';
+          }
+        }
+
+        showBannerMessage(
+          isReject
+            ? ('บันทึกปฏิเสธคำร้อง ' + assessmentForm.requestId + ' สำเร็จ (ไม่ผ่านเกณฑ์: ' + assessmentForm.rejectionReason + ')')
+            : ('บันทึกอนุมัติเยียวยา ' + assessmentForm.requestId + ' สำเร็จ (ส่งต่อไปแท็บเบิกจ่ายแล้ว)'),
+          false
+        );
+        loadDashboardData();
       }
     }
 
@@ -2132,20 +2443,7 @@
       const promptPayNum = (matchedRec && matchedRec.promptpayNumber) ? matchedRec.promptpayNumber : '-';
       document.getElementById('paySummaryPromptPay').textContent = promptPayNum;
 
-      document.getElementById('payModalSlipBase64').value = '';
-      document.getElementById('payModalSlipMimeType').value = '';
-      const fileInput = document.getElementById('payModalSlipFileInput');
-      if (fileInput) fileInput.value = '';
-      document.getElementById('paySlipPreviewBox').style.display = 'none';
-      document.getElementById('paySlipPreviewImg').src = '';
-      document.getElementById('paySlipFileNameText').textContent = '';
-      const badge = document.getElementById('slipStatusBadge');
-      if (badge) {
-        badge.textContent = 'รอแนบสลิป';
-        badge.style.background = 'var(--tier-yellow-bg)';
-        badge.style.color = 'var(--tier-yellow-text)';
-      }
-
+      clearPaymentSlipFile();
       document.getElementById('payModalTxRef').value = 'KTB-' + new Date().getTime();
       document.getElementById('paymentModal').classList.add('open');
     }
@@ -2201,38 +2499,62 @@
       reader.readAsDataURL(file);
     }
 
+    function clearPaymentSlipFile() {
+      const fileInput = document.getElementById('payModalSlipFileInput');
+      if (fileInput) fileInput.value = '';
+      document.getElementById('payModalSlipBase64').value = '';
+      document.getElementById('payModalSlipMimeType').value = '';
+      const box = document.getElementById('paySlipPreviewBox');
+      if (box) box.style.display = 'none';
+      const img = document.getElementById('paySlipPreviewImg');
+      if (img) img.src = '';
+      const txt = document.getElementById('paySlipFileNameText');
+      if (txt) txt.textContent = '';
+      const badge = document.getElementById('slipStatusBadge');
+      if (badge) {
+        badge.textContent = 'รอแนบสลิป';
+        badge.style.background = 'var(--tier-yellow-bg)';
+        badge.style.color = 'var(--tier-yellow-text)';
+      }
+    }
+
     function openSelectedSlipLightbox() {
       const base64Data = document.getElementById('payModalSlipBase64').value;
-      if (!base64Data) return;
-      currentLightboxItems = [
+      if (!base64Data) {
+        showBannerMessage('ยังไม่มีข้อมูลรูปภาพสลิป กรุณาเลือกไฟล์สลิปก่อน', true);
+        return;
+      }
+      const reqId = document.getElementById('payModalRequestId').value || 'คำร้อง';
+      lightboxSlides = [
         {
-          title: 'พรีวิวสลิปโอนเงิน — ' + document.getElementById('payModalRequestId').value,
+          label: 'สลิปหลักฐานการโอนเงิน',
           src: base64Data
         }
       ];
-      currentLightboxIndex = 0;
-      updateLightboxDisplay();
-      document.getElementById('imageLightboxModal').classList.add('open');
+      launchLightboxWithSlides('สลิปโอนเงิน — ' + reqId, 0);
     }
 
     function openDisbursementSlipLightbox(disbursementId, requestId, slipUrl) {
-      currentLightboxItems = [
+      if (!slipUrl) {
+        showBannerMessage('ไม่พบลิงก์หรือรูปภาพสลิปสำหรับรายการนี้', true);
+        return;
+      }
+      lightboxSlides = [
         {
-          title: 'สลิปหลักฐานการโอนเงิน — ' + requestId + ' (' + disbursementId + ')',
+          label: 'สลิปการโอนเงิน (' + disbursementId + ')',
           src: slipUrl
         }
       ];
-      currentLightboxIndex = 0;
-      updateLightboxDisplay();
-      document.getElementById('imageLightboxModal').classList.add('open');
+      launchLightboxWithSlides('สลิปการโอนเงิน — ' + requestId + ' (' + disbursementId + ')', 0);
 
       if (slipUrl && slipUrl.indexOf('drive.google.com') !== -1) {
         if (typeof google !== 'undefined' && google.script && google.script.run) {
           google.script.run
             .withSuccessHandler(function (dataUri) {
-              if (dataUri) {
-                currentLightboxItems[0].src = dataUri;
-                updateLightboxDisplay();
+              if (dataUri && lightboxSlides && lightboxSlides[0]) {
+                lightboxSlides[0].src = dataUri;
+                const mainImg = document.getElementById('lightboxMainImg');
+                if (mainImg) mainImg.src = dataUri;
               }
             })
             .fetchSingleImageUri(slipUrl);
@@ -2389,6 +2711,24 @@
       reader.readAsDataURL(fileInputEl.files[0]);
     }
 
+    function clearEvidencePhoto(photoType) {
+      if (photoType === 'house') {
+        const inputEl = document.getElementById('photoHouseInput');
+        if (inputEl) inputEl.value = '';
+        const boxEl = document.getElementById('housePreviewBox');
+        if (boxEl) boxEl.style.display = 'none';
+        const imgEl = document.getElementById('housePreviewImg');
+        if (imgEl) imgEl.src = '';
+      } else if (photoType === 'water') {
+        const inputEl = document.getElementById('photoWaterInput');
+        if (inputEl) inputEl.value = '';
+        const boxEl = document.getElementById('waterPreviewBox');
+        if (boxEl) boxEl.style.display = 'none';
+        const imgEl = document.getElementById('waterPreviewImg');
+        if (imgEl) imgEl.src = '';
+      }
+    }
+
     function openIntakePreviewLightbox(startIndex) {
       const houseSrc = document.getElementById('housePreviewImg').src;
       const waterSrc = document.getElementById('waterPreviewImg').src;
@@ -2484,6 +2824,24 @@
     function launchLightboxWithSlides(caseTitle, startIndex) {
       document.getElementById('lbTitleText').textContent = '🖼️ ' + caseTitle;
       document.getElementById('imageLightboxModal').classList.add('open');
+
+      const isMultiSlide = lightboxSlides && lightboxSlides.length > 1;
+      const prevBtn = document.querySelector('.lb-nav-arrow.prev');
+      const nextBtn = document.querySelector('.lb-nav-arrow.next');
+      if (prevBtn) prevBtn.style.display = isMultiSlide ? 'block' : 'none';
+      if (nextBtn) nextBtn.style.display = isMultiSlide ? 'block' : 'none';
+
+      const thumb0 = document.getElementById('lbThumbBtn0');
+      const thumb1 = document.getElementById('lbThumbBtn1');
+      if (thumb0) {
+        thumb0.style.display = isMultiSlide ? 'inline-block' : 'none';
+        if (isMultiSlide && lightboxSlides[0]) thumb0.textContent = lightboxSlides[0].label;
+      }
+      if (thumb1) {
+        thumb1.style.display = (isMultiSlide && lightboxSlides.length > 1) ? 'inline-block' : 'none';
+        if (isMultiSlide && lightboxSlides[1]) thumb1.textContent = lightboxSlides[1].label;
+      }
+
       selectLightboxSlide(startIndex || 0);
     }
 
@@ -2500,7 +2858,9 @@
 
       document.getElementById('lightboxMainImg').src = activeSlide.src;
       document.getElementById('lbSlideCounter').textContent =
-        '(' + activeSlide.label + ' — ภาพที่ ' + (lightboxCurrentIndex + 1) + '/' + lightboxSlides.length + ')';
+        (lightboxSlides.length > 1)
+          ? '(' + activeSlide.label + ' — ภาพที่ ' + (lightboxCurrentIndex + 1) + '/' + lightboxSlides.length + ')'
+          : '(' + activeSlide.label + ')';
 
       const thumb0 = document.getElementById('lbThumbBtn0');
       const thumb1 = document.getElementById('lbThumbBtn1');

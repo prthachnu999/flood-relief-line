@@ -726,11 +726,22 @@ function recordFieldAssessment(assessmentInput, adminPasscode) {
   }
 
   const assessmentId = generateNextSequentialId(assessmentSheet, 'ASM');
-  const thaiDamageLabel = resolveThaiDamageLabel(assessmentInput.damageCategory);
-  const approvedAmountThb = computeApprovedRemedyAmount(thaiDamageLabel);
-  const isRejected = thaiDamageLabel === DAMAGE_CATEGORY_TH.INELIGIBLE;
+  const isRejected = (assessmentInput.decision === 'REJECT') ||
+    (assessmentInput.damageCategory === DAMAGE_CATEGORY_TH.INELIGIBLE) ||
+    (assessmentInput.damageCategory === 'ไม่เข้าเกณฑ์เยียวยา');
+
+  const thaiDamageLabel = isRejected
+    ? DAMAGE_CATEGORY_TH.INELIGIBLE
+    : resolveThaiDamageLabel(assessmentInput.damageCategory);
+
+  const approvedAmountThb = isRejected ? 0 : computeApprovedRemedyAmount(thaiDamageLabel);
   const updatedClaimStatus = isRejected ? CLAIM_STATUS_TH.REJECTED : CLAIM_STATUS_TH.APPROVED;
   const assessedTimestamp = formatThaiTimestamp();
+
+  let finalNotes = String(assessmentInput.inspectorNotes || '');
+  if (isRejected && assessmentInput.rejectionReason) {
+    finalNotes = '[เหตุผลไม่อนุมัติ: ' + assessmentInput.rejectionReason + '] ' + finalNotes;
+  }
 
   const assessmentRow = [
     assessmentId,
@@ -739,7 +750,7 @@ function recordFieldAssessment(assessmentInput, adminPasscode) {
     thaiDamageLabel,
     approvedAmountThb,
     assessmentInput.reliefPackDelivered ? 'มอบถุงยังชีพแล้ว' : 'ยังไม่ได้มอบ',
-    String(assessmentInput.inspectorNotes || ''),
+    finalNotes,
     assessedTimestamp
   ];
 
@@ -752,7 +763,7 @@ function recordFieldAssessment(assessmentInput, adminPasscode) {
   appendAuditLogEntry(
     spreadsheet,
     assessmentInput.requestId,
-    'ประเมินความเสียหายภาคสนาม',
+    isRejected ? 'ปฏิเสธคำร้อง (ไม่ผ่านเกณฑ์)' : 'ประเมินความเสียหายและอนุมัติเยียวยา',
     assessmentInput.inspectorOfficerId || 'เจ้าหน้าที่สำรวจ',
     previousStatus,
     updatedClaimStatus
@@ -762,7 +773,8 @@ function recordFieldAssessment(assessmentInput, adminPasscode) {
     assessmentId: assessmentId,
     requestId: assessmentInput.requestId,
     approvedRemedyThb: approvedAmountThb,
-    claimStatus: updatedClaimStatus
+    claimStatus: updatedClaimStatus,
+    isRejected: isRejected
   };
 }
 
@@ -835,11 +847,11 @@ function getDashboardOverview(adminPasscode) {
 
   const assessmentSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_assessments.sheetName);
   const disbursementSheet = spreadsheet.getSheetByName(TABLE_SCHEMAS.tbl_disbursements.sheetName);
-  const approvedAmountsByReq = buildApprovedAmountMap(assessmentSheet);
-  const registrationItems = readAllRegistrations(regSheet, approvedAmountsByReq);
+  const assessmentMap = buildAssessmentMap(assessmentSheet);
+  const registrationItems = readAllRegistrations(regSheet, assessmentMap);
   const disbursementItems = readAllDisbursements(disbursementSheet);
 
-  const summaryCounts = computeSummaryMetrics(registrationItems, approvedAmountsByReq, disbursementItems);
+  const summaryCounts = computeSummaryMetrics(registrationItems, disbursementItems);
 
   return {
     totalRequests: registrationItems.length,
@@ -847,6 +859,7 @@ function getDashboardOverview(adminPasscode) {
     pendingCount: summaryCounts.pendingCount,
     approvedCount: summaryCounts.approvedCount,
     paidCount: summaryCounts.paidCount,
+    rejectedCount: summaryCounts.rejectedCount,
     totalApprovedBudgetThb: summaryCounts.totalApprovedBudgetThb,
     totalPaidBudgetThb: summaryCounts.totalPaidBudgetThb,
     registrations: registrationItems,
@@ -854,11 +867,12 @@ function getDashboardOverview(adminPasscode) {
   };
 }
 
-function computeSummaryMetrics(registrationItems, approvedAmountsByReq, disbursementItems) {
+function computeSummaryMetrics(registrationItems, disbursementItems) {
   let redCount = 0;
   let pendingCount = 0;
   let approvedCount = 0;
   let paidCount = 0;
+  let rejectedCount = 0;
   let totalApprovedBudgetThb = 0;
   let totalPaidBudgetThb = 0;
 
@@ -868,7 +882,8 @@ function computeSummaryMetrics(registrationItems, approvedAmountsByReq, disburse
     if (record.claimStatus === CLAIM_STATUS_TH.PENDING) pendingCount++;
     if (record.claimStatus === CLAIM_STATUS_TH.APPROVED) approvedCount++;
     if (record.claimStatus === CLAIM_STATUS_TH.PAID) paidCount++;
-    totalApprovedBudgetThb += Number(approvedAmountsByReq[record.requestId]) || 0;
+    if (record.claimStatus === CLAIM_STATUS_TH.REJECTED) rejectedCount++;
+    totalApprovedBudgetThb += Number(record.approvedRemedyThb) || 0;
   }
 
   for (let dIdx = 0; dIdx < disbursementItems.length; dIdx++) {
@@ -880,25 +895,30 @@ function computeSummaryMetrics(registrationItems, approvedAmountsByReq, disburse
     pendingCount: pendingCount,
     approvedCount: approvedCount,
     paidCount: paidCount,
+    rejectedCount: rejectedCount,
     totalApprovedBudgetThb: totalApprovedBudgetThb,
     totalPaidBudgetThb: totalPaidBudgetThb
   };
 }
 
-function buildApprovedAmountMap(assessmentSheet) {
-  const amountMap = {};
+function buildAssessmentMap(assessmentSheet) {
+  const map = {};
   if (!assessmentSheet || assessmentSheet.getLastRow() <= 1) {
-    return amountMap;
+    return map;
   }
-  const assessmentRows = assessmentSheet.getRange(2, 1, assessmentSheet.getLastRow() - 1, 6).getValues();
+  const assessmentRows = assessmentSheet.getRange(2, 1, assessmentSheet.getLastRow() - 1, 7).getValues();
   for (let idx = 0; idx < assessmentRows.length; idx++) {
     const reqId = String(assessmentRows[idx][1]).trim();
-    amountMap[reqId] = Number(assessmentRows[idx][4]) || 0;
+    map[reqId] = {
+      amountThb: Number(assessmentRows[idx][4]) || 0,
+      damageCategory: String(assessmentRows[idx][3]),
+      notes: String(assessmentRows[idx][6] || '')
+    };
   }
-  return amountMap;
+  return map;
 }
 
-function readAllRegistrations(regSheet, approvedAmountsByReq) {
+function readAllRegistrations(regSheet, assessmentMap) {
   const lastRow = regSheet.getLastRow();
   if (lastRow <= 1) {
     return [];
@@ -910,6 +930,7 @@ function readAllRegistrations(regSheet, approvedAmountsByReq) {
   for (let idx = 0; idx < rawRows.length; idx++) {
     const rowCells = rawRows[idx];
     const reqId = String(rowCells[0]);
+    const assessData = assessmentMap ? assessmentMap[reqId] : null;
     mappedRecords.push({
       requestId: reqId,
       createdAt: String(rowCells[1]),
@@ -932,7 +953,9 @@ function readAllRegistrations(regSheet, approvedAmountsByReq) {
       priorityScore: Number(rowCells[21]) || 0,
       priorityTier: String(rowCells[22]),
       claimStatus: String(rowCells[23]),
-      approvedRemedyThb: (approvedAmountsByReq && approvedAmountsByReq[reqId]) ? approvedAmountsByReq[reqId] : 0
+      approvedRemedyThb: assessData ? assessData.amountThb : 0,
+      assessmentNotes: assessData ? assessData.notes : '',
+      damageCategory: assessData ? assessData.damageCategory : ''
     });
   }
 
