@@ -500,6 +500,163 @@
       padding: 24px;
       box-shadow: 0 12px 32px hsla(212, 72%, 12%, 0.25);
     }
+
+    .intake-preview-box {
+      margin-top: 8px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-subtle);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .intake-preview-box img {
+      width: 64px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: zoom-in;
+      border: 1px solid var(--border-color);
+    }
+
+    .lightbox-backdrop {
+      position: fixed;
+      inset: 0;
+      background: hsla(215, 50%, 8%, 0.92);
+      display: none;
+      flex-direction: column;
+      z-index: 1200;
+      user-select: none;
+    }
+
+    .lightbox-backdrop.open {
+      display: flex;
+    }
+
+    .lightbox-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: hsla(215, 45%, 12%, 0.95);
+      border-bottom: 1px solid hsla(0, 0%, 100%, 0.14);
+      color: hsl(0, 0%, 100%);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lightbox-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lb-btn {
+      background: hsla(0, 0%, 100%, 0.14);
+      color: hsl(0, 0%, 100%);
+      border: 1px solid hsla(0, 0%, 100%, 0.24);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .lb-btn:hover {
+      background: hsla(0, 0%, 100%, 0.26);
+    }
+
+    .lb-btn.close-danger {
+      background: hsl(354, 78%, 45%);
+      border-color: hsl(354, 78%, 55%);
+    }
+
+    .lightbox-stage {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .lightbox-stage.dragging {
+      cursor: grabbing;
+    }
+
+    .lightbox-img {
+      max-width: 86vw;
+      max-height: 72vh;
+      object-fit: contain;
+      border-radius: 8px;
+      transition: transform 0.08s ease-out;
+      transform-origin: center center;
+      pointer-events: none;
+      box-shadow: 0 8px 32px hsla(0, 0%, 0%, 0.5);
+    }
+
+    .lb-nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: hsla(215, 45%, 14%, 0.82);
+      color: hsl(0, 0%, 100%);
+      border: 1px solid hsla(0, 0%, 100%, 0.28);
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .lb-nav-arrow:hover {
+      background: var(--hydro-blue);
+    }
+
+    .lb-nav-arrow.prev {
+      left: 20px;
+    }
+
+    .lb-nav-arrow.next {
+      right: 20px;
+    }
+
+    .lightbox-bottombar {
+      padding: 12px 20px;
+      background: hsla(215, 45%, 12%, 0.95);
+      border-top: 1px solid hsla(0, 0%, 100%, 0.14);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .lb-thumb-btn {
+      background: hsla(0, 0%, 100%, 0.1);
+      color: hsl(210, 30%, 88%);
+      border: 2px solid transparent;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .lb-thumb-btn.active {
+      border-color: var(--relief-amber);
+      background: hsla(35, 92%, 46%, 0.22);
+      color: hsl(0, 0%, 100%);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -653,16 +810,30 @@
 
         <div class="card">
           <div class="section-heading">
-            <span>4. แนบภาพถ่ายหลักฐานความเสียหาย (จัดเก็บใน Google Drive หน่วยงาน)</span>
+            <span>4. แนบภาพถ่ายหลักฐานความเสียหาย (กดที่รูปตัวอย่างเพื่อขยายดูได้)</span>
           </div>
           <div class="grid-2">
             <div class="form-group">
               <label class="form-label">📷 ภาพถ่ายตัวบ้านขณะถูกน้ำท่วมหรือร่องรอยความเสียหาย</label>
-              <input type="file" id="photoHouseInput" class="form-control" accept="image/*">
+              <input type="file" id="photoHouseInput" class="form-control" accept="image/*" onchange="previewSelectedEvidencePhoto(this, 'housePreviewBox', 'housePreviewImg')">
+              <div id="housePreviewBox" class="intake-preview-box">
+                <img id="housePreviewImg" src="" alt="ตัวอย่างภาพบ้าน" onclick="openIntakePreviewLightbox(0)">
+                <div>
+                  <div style="font-size:0.84rem; font-weight:600; color:var(--hydro-navy);">ภาพสภาพบ้านที่เลือกไว้</div>
+                  <button type="button" class="btn-secondary" style="padding:3px 10px; font-size:0.76rem; margin-top:4px;" onclick="openIntakePreviewLightbox(0)">🔍 กดเปิดดูภาพ / ซูมขยาย</button>
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">📷 ภาพถ่ายระดับน้ำท่วมขัง / ทรัพย์สินเสียหาย</label>
-              <input type="file" id="photoWaterInput" class="form-control" accept="image/*">
+              <input type="file" id="photoWaterInput" class="form-control" accept="image/*" onchange="previewSelectedEvidencePhoto(this, 'waterPreviewBox', 'waterPreviewImg')">
+              <div id="waterPreviewBox" class="intake-preview-box">
+                <img id="waterPreviewImg" src="" alt="ตัวอย่างภาพระดับน้ำ" onclick="openIntakePreviewLightbox(1)">
+                <div>
+                  <div style="font-size:0.84rem; font-weight:600; color:var(--hydro-navy);">ภาพระดับน้ำที่เลือกไว้</div>
+                  <button type="button" class="btn-secondary" style="padding:3px 10px; font-size:0.76rem; margin-top:4px;" onclick="openIntakePreviewLightbox(1)">🔍 กดเปิดดูภาพ / ซูมขยาย</button>
+                </div>
+              </div>
             </div>
           </div>
           <div style="margin-top: 16px; text-align: right;">
@@ -840,6 +1011,7 @@
     <div class="modal-box">
       <div class="section-heading">
         <span>🛡️ บันทึกผลสำรวจความเสียหายและอนุมัติวงเงิน</span>
+        <button type="button" class="btn-secondary" style="padding:4px 10px; font-size:0.78rem;" onclick="openModalCurrentCaseGallery()">🖼️ ดูภาพความเสียหาย</button>
       </div>
       <form id="assessmentForm" onsubmit="submitAssessmentModal(event)">
         <input type="hidden" id="modalRequestId">
@@ -916,6 +1088,35 @@
           <button type="submit" id="payModalSaveBtn" class="btn-primary">บันทึกการโอนเงินสำเร็จ</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX: IN-APP INTERACTIVE IMAGE VIEWER (SLIDE / ZOOM / PAN) -->
+  <div id="imageLightboxModal" class="lightbox-backdrop">
+    <div class="lightbox-topbar">
+      <div>
+        <strong id="lbTitleText" style="font-size: 1rem;">🖼️ ภาพถ่ายหลักฐานความเสียหาย</strong>
+        <span id="lbSlideCounter" style="font-size: 0.84rem; color: hsl(204, 40%, 82%); margin-left: 10px;">(ภาพที่ 1/2)</span>
+      </div>
+      <div class="lightbox-controls">
+        <button type="button" class="lb-btn" onclick="adjustLightboxZoom(0.25)">➕ ซูมเข้า</button>
+        <button type="button" class="lb-btn" onclick="adjustLightboxZoom(-0.25)">➖ ซูมออก</button>
+        <button type="button" class="lb-btn" onclick="rotateLightboxImage()">⤵️ หมุนภาพ 90°</button>
+        <button type="button" class="lb-btn" id="lbZoomPercentLabel" onclick="resetLightboxTransform()">🔄 100%</button>
+        <button type="button" class="lb-btn close-danger" onclick="closeImageLightbox()">✕ ปิดหน้าต่างภาพ</button>
+      </div>
+    </div>
+
+    <div id="lightboxStage" class="lightbox-stage">
+      <button type="button" class="lb-nav-arrow prev" onclick="stepLightboxSlide(-1)" title="ภาพก่อนหน้า">◀</button>
+      <img id="lightboxMainImg" class="lightbox-img" src="" alt="ภาพหลักฐานผู้ประสบภัย">
+      <button type="button" class="lb-nav-arrow next" onclick="stepLightboxSlide(1)" title="ภาพถัดไป">▶</button>
+    </div>
+
+    <div class="lightbox-bottombar">
+      <button type="button" id="lbThumbBtn0" class="lb-thumb-btn active" onclick="selectLightboxSlide(0)">📷 1. ภาพสภาพตัวบ้านที่ถูกน้ำท่วม</button>
+      <button type="button" id="lbThumbBtn1" class="lb-thumb-btn" onclick="selectLightboxSlide(1)">🌊 2. ภาพระดับน้ำท่วมขัง / ทรัพย์สินเสียหาย</button>
+      <span style="font-size: 0.78rem; color: hsl(210, 25%, 72%);">💡 ใช้ลูกกลิ้งเมาส์ซูมเข้า-ออก และคลิกค้างเพื่อลากเลื่อนดูจุดเสียหายได้</span>
     </div>
   </div>
 
@@ -1511,8 +1712,9 @@
         const mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(rec.gpsLat + ',' + rec.gpsLng);
         links += '<a href="' + mapsUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--hydro-blue); font-weight:600;">📍 แผนที่ GPS</a>';
       }
+      links += '<button type="button" class="mini-tag" style="cursor:pointer; color:var(--hydro-blue); font-weight:600; background:hsl(204, 80%, 94%); border-color:hsl(204, 70%, 76%);" onclick="openCaseEvidenceLightbox(\'' + rec.requestId + '\')">🖼️ เปิดดูภาพบนเว็บ</button>';
       if (rec.evidenceFolderUrl) {
-        links += '<a href="' + rec.evidenceFolderUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--hydro-blue); font-weight:600;">📷 รูปหลักฐาน</a>';
+        links += '<a href="' + rec.evidenceFolderUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--text-secondary);">📁 Drive</a>';
       }
       return links;
     }
@@ -1743,8 +1945,267 @@
       document.body.removeChild(linkEl);
     }
 
+    let lightboxSlides = [];
+    let lightboxCurrentIndex = 0;
+    let lbScale = 1;
+    let lbRotation = 0;
+    let lbTranslateX = 0;
+    let lbTranslateY = 0;
+    let lbIsDragging = false;
+    let lbDragStartX = 0;
+    let lbDragStartY = 0;
+
+    function createSampleEvidenceSvgDataUri(titleText, subtitleText, waterCm) {
+      const svgMarkup = '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">' +
+        '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1E3A5F"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient>' +
+        '<linearGradient id="flood" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0284C7" stop-opacity="0.88"/><stop offset="100%" stop-color="#0F172A" stop-opacity="0.96"/></linearGradient></defs>' +
+        '<rect width="1200" height="800" fill="url(#sky)"/>' +
+        '<polygon points="600,150 280,360 920,360" fill="#B45309" stroke="#FDE68A" stroke-width="4"/>' +
+        '<rect x="340" y="360" width="520" height="320" fill="#F8FAFC" stroke="#475569" stroke-width="4"/>' +
+        '<rect x="420" y="420" width="110" height="110" fill="#38BDF8" stroke="#1E293B" stroke-width="4"/>' +
+        '<rect x="660" y="420" width="110" height="110" fill="#38BDF8" stroke="#1E293B" stroke-width="4"/>' +
+        '<rect x="545" y="470" width="90" height="210" fill="#78350F" stroke="#1E293B" stroke-width="4"/>' +
+        '<rect x="0" y="460" width="1200" height="340" fill="url(#flood)"/>' +
+        '<line x1="200" y1="460" x2="1000" y2="460" stroke="#FACC15" stroke-width="5" stroke-dasharray="14,10"/>' +
+        '<rect x="60" y="50" width="1080" height="95" rx="14" fill="#0F172A" fill-opacity="0.82"/>' +
+        '<text x="95" y="95" fill="#F8FAFC" font-family="sans-serif" font-size="30" font-weight="bold">' + titleText + '</text>' +
+        '<text x="95" y="130" fill="#93C5FD" font-family="sans-serif" font-size="22">' + subtitleText + ' | ระดับน้ำท่วมขังวัดได้: ' + waterCm + ' ซม.</text>' +
+        '<text x="230" y="445" fill="#FEF08A" font-family="sans-serif" font-size="24" font-weight="bold">▲ เส้นระดับน้ำท่วมสูงสุด (' + waterCm + ' ซม.)</text>' +
+        '</svg>';
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svgMarkup);
+    }
+
+    function previewSelectedEvidencePhoto(fileInputEl, previewBoxId, previewImgId) {
+      const boxEl = document.getElementById(previewBoxId);
+      const imgEl = document.getElementById(previewImgId);
+      if (!fileInputEl.files || !fileInputEl.files[0]) {
+        boxEl.style.display = 'none';
+        imgEl.src = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        imgEl.src = ev.target.result;
+        boxEl.style.display = 'flex';
+      };
+      reader.readAsDataURL(fileInputEl.files[0]);
+    }
+
+    function openIntakePreviewLightbox(startIndex) {
+      const houseSrc = document.getElementById('housePreviewImg').src;
+      const waterSrc = document.getElementById('waterPreviewImg').src;
+      const fallbackHouse = createSampleEvidenceSvgDataUri('ตัวอย่างภาพสภาพบ้าน', 'ยังไม่ได้เลือกไฟล์ภาพที่ 1', 40);
+      const fallbackWater = createSampleEvidenceSvgDataUri('ตัวอย่างภาพระดับน้ำ', 'ยังไม่ได้เลือกไฟล์ภาพที่ 2', 40);
+
+      lightboxSlides = [
+        {
+          label: '1. ภาพถ่ายสภาพบ้านที่เลือกไว้',
+          src: (houseSrc && houseSrc.indexOf('data:image') === 0) ? houseSrc : fallbackHouse
+        },
+        {
+          label: '2. ภาพถ่ายระดับน้ำที่เลือกไว้',
+          src: (waterSrc && waterSrc.indexOf('data:image') === 0) ? waterSrc : fallbackWater
+        }
+      ];
+      launchLightboxWithSlides('ตรวจสอบภาพก่อนส่งคำร้อง', startIndex || 0);
+    }
+
+    function openModalCurrentCaseGallery() {
+      const reqId = document.getElementById('modalRequestId').value;
+      if (reqId) {
+        openCaseEvidenceLightbox(reqId);
+      }
+    }
+
+    function openCaseEvidenceLightbox(requestId) {
+      let targetRecord = null;
+      for (let i = 0; i < cachedRegistrations.length; i++) {
+        if (cachedRegistrations[i].requestId === requestId) {
+          targetRecord = cachedRegistrations[i];
+          break;
+        }
+      }
+      if (!targetRecord) {
+        return;
+      }
+
+      const fallbackHouse = createSampleEvidenceSvgDataUri(
+        'ภาพหลักฐานที่ 1: สภาพตัวบ้าน (' + targetRecord.requestId + ')',
+        targetRecord.fullname + ' — ' + targetRecord.addressText,
+        targetRecord.waterDepthCm
+      );
+      const fallbackWater = createSampleEvidenceSvgDataUri(
+        'ภาพหลักฐานที่ 2: ระดับน้ำท่วมขังภายในบ้าน (' + targetRecord.requestId + ')',
+        'พิกัด GPS: ' + (targetRecord.gpsLat || '-') + ', ' + (targetRecord.gpsLng || '-'),
+        targetRecord.waterDepthCm
+      );
+
+      if (
+        typeof google !== 'undefined' &&
+        google.script &&
+        google.script.run &&
+        (targetRecord.photoHouseUrl || targetRecord.photoWaterUrl)
+      ) {
+        google.script.run
+          .withSuccessHandler(function (galleryPack) {
+            lightboxSlides = [
+              {
+                label: '1. ภาพสภาพตัวบ้าน (' + targetRecord.requestId + ')',
+                src: (galleryPack && galleryPack.houseImageSrc) ? galleryPack.houseImageSrc : fallbackHouse
+              },
+              {
+                label: '2. ภาพระดับน้ำท่วมขัง (' + targetRecord.requestId + ')',
+                src: (galleryPack && galleryPack.waterImageSrc) ? galleryPack.waterImageSrc : fallbackWater
+              }
+            ];
+            launchLightboxWithSlides(targetRecord.requestId + ' — ' + targetRecord.fullname, 0);
+          })
+          .withFailureHandler(function () {
+            lightboxSlides = [
+              { label: '1. ภาพสภาพตัวบ้าน', src: fallbackHouse },
+              { label: '2. ภาพระดับน้ำท่วมขัง', src: fallbackWater }
+            ];
+            launchLightboxWithSlides(targetRecord.requestId + ' — ' + targetRecord.fullname, 0);
+          })
+          .fetchEvidenceGalleryImages(targetRecord.photoHouseUrl, targetRecord.photoWaterUrl);
+      } else {
+        lightboxSlides = [
+          {
+            label: '1. ภาพสภาพตัวบ้าน (' + targetRecord.requestId + ')',
+            src: targetRecord.photoHouseUrl || fallbackHouse
+          },
+          {
+            label: '2. ภาพระดับน้ำท่วมขัง (' + targetRecord.requestId + ')',
+            src: targetRecord.photoWaterUrl || fallbackWater
+          }
+        ];
+        launchLightboxWithSlides(targetRecord.requestId + ' — ' + targetRecord.fullname, 0);
+      }
+    }
+
+    function launchLightboxWithSlides(caseTitle, startIndex) {
+      document.getElementById('lbTitleText').textContent = '🖼️ ' + caseTitle;
+      document.getElementById('imageLightboxModal').classList.add('open');
+      selectLightboxSlide(startIndex || 0);
+    }
+
+    function closeImageLightbox() {
+      document.getElementById('imageLightboxModal').classList.remove('open');
+    }
+
+    function selectLightboxSlide(slideIndex) {
+      if (!lightboxSlides || lightboxSlides.length === 0) {
+        return;
+      }
+      lightboxCurrentIndex = (slideIndex + lightboxSlides.length) % lightboxSlides.length;
+      const activeSlide = lightboxSlides[lightboxCurrentIndex];
+
+      document.getElementById('lightboxMainImg').src = activeSlide.src;
+      document.getElementById('lbSlideCounter').textContent =
+        '(' + activeSlide.label + ' — ภาพที่ ' + (lightboxCurrentIndex + 1) + '/' + lightboxSlides.length + ')';
+
+      const thumb0 = document.getElementById('lbThumbBtn0');
+      const thumb1 = document.getElementById('lbThumbBtn1');
+      if (thumb0) thumb0.classList.toggle('active', lightboxCurrentIndex === 0);
+      if (thumb1) thumb1.classList.toggle('active', lightboxCurrentIndex === 1);
+
+      resetLightboxTransform();
+    }
+
+    function stepLightboxSlide(directionDelta) {
+      selectLightboxSlide(lightboxCurrentIndex + directionDelta);
+    }
+
+    function adjustLightboxZoom(deltaScale) {
+      lbScale = Math.min(4.5, Math.max(0.5, Number((lbScale + deltaScale).toFixed(2))));
+      applyLightboxTransform();
+    }
+
+    function rotateLightboxImage() {
+      lbRotation = (lbRotation + 90) % 360;
+      applyLightboxTransform();
+    }
+
+    function resetLightboxTransform() {
+      lbScale = 1;
+      lbRotation = 0;
+      lbTranslateX = 0;
+      lbTranslateY = 0;
+      applyLightboxTransform();
+    }
+
+    function applyLightboxTransform() {
+      const imgEl = document.getElementById('lightboxMainImg');
+      imgEl.style.transform =
+        'translate(' + lbTranslateX + 'px, ' + lbTranslateY + 'px) ' +
+        'scale(' + lbScale + ') ' +
+        'rotate(' + lbRotation + 'deg)';
+      document.getElementById('lbZoomPercentLabel').textContent = '🔄 ' + Math.round(lbScale * 100) + '%';
+    }
+
+    function setupLightboxInteractions() {
+      const stageEl = document.getElementById('lightboxStage');
+      if (!stageEl) return;
+
+      stageEl.addEventListener('wheel', function (wheelEv) {
+        wheelEv.preventDefault();
+        const zoomStep = wheelEv.deltaY < 0 ? 0.2 : -0.2;
+        adjustLightboxZoom(zoomStep);
+      }, { passive: false });
+
+      stageEl.addEventListener('mousedown', function (downEv) {
+        if (downEv.target.tagName === 'BUTTON') return;
+        lbIsDragging = true;
+        lbDragStartX = downEv.clientX - lbTranslateX;
+        lbDragStartY = downEv.clientY - lbTranslateY;
+        stageEl.classList.add('dragging');
+      });
+
+      window.addEventListener('mousemove', function (moveEv) {
+        if (!lbIsDragging) return;
+        lbTranslateX = moveEv.clientX - lbDragStartX;
+        lbTranslateY = moveEv.clientY - lbDragStartY;
+        applyLightboxTransform();
+      });
+
+      window.addEventListener('mouseup', function () {
+        if (lbIsDragging) {
+          lbIsDragging = false;
+          stageEl.classList.remove('dragging');
+        }
+      });
+
+      stageEl.addEventListener('touchstart', function (touchEv) {
+        if (touchEv.touches.length === 1) {
+          lbIsDragging = true;
+          lbDragStartX = touchEv.touches[0].clientX - lbTranslateX;
+          lbDragStartY = touchEv.touches[0].clientY - lbTranslateY;
+        }
+      }, { passive: true });
+
+      stageEl.addEventListener('touchmove', function (touchEv) {
+        if (!lbIsDragging || touchEv.touches.length !== 1) return;
+        lbTranslateX = touchEv.touches[0].clientX - lbDragStartX;
+        lbTranslateY = touchEv.touches[0].clientY - lbDragStartY;
+        applyLightboxTransform();
+      }, { passive: true });
+
+      stageEl.addEventListener('touchend', function () {
+        lbIsDragging = false;
+      });
+
+      window.addEventListener('keydown', function (keyEv) {
+        const modalOpen = document.getElementById('imageLightboxModal').classList.contains('open');
+        if (!modalOpen) return;
+        if (keyEv.key === 'ArrowLeft') stepLightboxSlide(-1);
+        else if (keyEv.key === 'ArrowRight') stepLightboxSlide(1);
+        else if (keyEv.key === 'Escape') closeImageLightbox();
+      });
+    }
+
     recalculateLiveTriage();
     restorePersistedPortalState();
+    setupLightboxInteractions();
   </script>
 </body>
 </html>

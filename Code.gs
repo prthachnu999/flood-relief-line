@@ -330,7 +330,7 @@ function saveBase64EvidenceImage(folderId, fileLabel, base64Content, mimeType) {
   }
 
   const targetFolder = DriveApp.getFolderById(folderId);
-  const strippedBase64 = base64Content.replace(/^data:image\/\w+;base64,/, '');
+  const strippedBase64 = base64Content.replace(/^data:image\/[\w+.-]+;base64,/, '');
   const decodedBytes = Utilities.base64Decode(strippedBase64);
   const safeMimeType = mimeType || 'image/jpeg';
   const fileExtension = safeMimeType.split('/')[1] || 'jpg';
@@ -340,7 +340,55 @@ function saveBase64EvidenceImage(folderId, fileLabel, base64Content, mimeType) {
   const uploadedFile = targetFolder.createFile(imageBlob);
   uploadedFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-  return uploadedFile.getUrl();
+  return 'https://drive.google.com/uc?export=view&id=' + uploadedFile.getId();
+}
+
+function extractDriveFileId(rawUrl) {
+  const textUrl = String(rawUrl || '').trim();
+  if (!textUrl) {
+    return '';
+  }
+  const idParamMatch = textUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idParamMatch && idParamMatch[1]) {
+    return idParamMatch[1];
+  }
+  const pathMatch = textUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (pathMatch && pathMatch[1]) {
+    return pathMatch[1];
+  }
+  return '';
+}
+
+function resolveDriveUrlToDataUri(rawUrl) {
+  const cleanUrl = String(rawUrl || '').trim();
+  if (!cleanUrl) {
+    return '';
+  }
+  if (cleanUrl.indexOf('data:image/') === 0) {
+    return cleanUrl;
+  }
+
+  const fileId = extractDriveFileId(cleanUrl);
+  if (!fileId) {
+    return cleanUrl;
+  }
+
+  try {
+    const driveFile = DriveApp.getFileById(fileId);
+    const blob = driveFile.getBlob();
+    const contentType = blob.getContentType() || 'image/jpeg';
+    const base64String = Utilities.base64Encode(blob.getBytes());
+    return 'data:' + contentType + ';base64,' + base64String;
+  } catch (err) {
+    return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1600';
+  }
+}
+
+function fetchEvidenceGalleryImages(housePhotoUrl, waterPhotoUrl) {
+  return {
+    houseImageSrc: resolveDriveUrlToDataUri(housePhotoUrl),
+    waterImageSrc: resolveDriveUrlToDataUri(waterPhotoUrl)
+  };
 }
 
 function sanitizeNumericDigits(rawInput) {
