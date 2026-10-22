@@ -362,7 +362,7 @@ function extractDriveFileId(rawUrl) {
 
 function resolveDriveUrlToDataUri(rawUrl) {
   const cleanUrl = String(rawUrl || '').trim();
-  if (!cleanUrl) {
+  if (!cleanUrl || cleanUrl === '-' || cleanUrl === 'ไม่มีภาพ') {
     return '';
   }
   if (cleanUrl.indexOf('data:image/') === 0) {
@@ -371,7 +371,7 @@ function resolveDriveUrlToDataUri(rawUrl) {
 
   const fileId = extractDriveFileId(cleanUrl);
   if (!fileId) {
-    return cleanUrl;
+    return cleanUrl.indexOf('http') === 0 ? cleanUrl : '';
   }
 
   try {
@@ -919,9 +919,9 @@ function recordQuickEmergencySos(sosInput) {
       'ถูกตัดขาด',
       gpsLatitude,
       gpsLongitude,
-      '-',
-      '-',
-      '-',
+      '',
+      '',
+      '',
       100,
       PRIORITY_TIERS_TH.RED,
       CLAIM_STATUS_TH.PENDING
@@ -1091,9 +1091,9 @@ function readAllRegistrations(regSheet, assessmentMap) {
       isIsolated: String(rowCells[15]),
       gpsLat: String(rowCells[16]),
       gpsLng: String(rowCells[17]),
-      evidenceFolderUrl: String(rowCells[18] || ''),
-      photoHouseUrl: String(rowCells[19] || ''),
-      photoWaterUrl: String(rowCells[20] || ''),
+      evidenceFolderUrl: (String(rowCells[18] || '').trim() === '-') ? '' : String(rowCells[18] || ''),
+      photoHouseUrl: (String(rowCells[19] || '').trim() === '-') ? '' : String(rowCells[19] || ''),
+      photoWaterUrl: (String(rowCells[20] || '').trim() === '-') ? '' : String(rowCells[20] || ''),
       priorityScore: Number(rowCells[21]) || 0,
       priorityTier: String(rowCells[22]),
       claimStatus: String(rowCells[23]),

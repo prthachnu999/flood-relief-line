@@ -2072,14 +2072,17 @@
       renderOfficerTable();
     }
 
-    function showBannerMessage(messageText, isError) {
+    function showBannerMessage(messageText, isError, shouldScrollToTop) {
       const bannerEl = document.getElementById('notificationBanner');
+      if (!bannerEl) return;
       bannerEl.style.display = 'block';
       bannerEl.style.background = isError ? 'var(--tier-red-bg)' : 'var(--tier-green-bg)';
       bannerEl.style.color = isError ? 'var(--tier-red-text)' : 'var(--tier-green-text)';
       bannerEl.style.border = '1.5px solid ' + (isError ? 'var(--tier-red-border)' : 'var(--tier-green-border)');
       bannerEl.textContent = messageText;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (shouldScrollToTop === true) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
 
     function sanitizeDigitsInput(inputEl, maxDigits) {
@@ -2438,13 +2441,22 @@
       return tags;
     }
 
+    function isValidPhotoEvidenceUrl(url) {
+      if (!url) return false;
+      const clean = String(url).trim();
+      return clean !== '' && clean !== '-' && clean !== 'ไม่มีภาพ' && clean !== 'null' && clean !== 'undefined';
+    }
+
     function buildEvidenceLinksHtml(rec) {
       let links = '';
       if (rec.gpsLat && rec.gpsLng) {
         const mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(rec.gpsLat + ',' + rec.gpsLng);
         links += '<a href="' + mapsUrl + '" target="_blank" class="mini-tag" style="text-decoration:none; color:var(--hydro-blue); font-weight:600;">📍 แผนที่ GPS</a>';
       }
-      if (rec.photoHouseUrl || rec.photoWaterUrl) {
+      const hasHousePhoto = isValidPhotoEvidenceUrl(rec.photoHouseUrl);
+      const hasWaterPhoto = isValidPhotoEvidenceUrl(rec.photoWaterUrl);
+
+      if (hasHousePhoto || hasWaterPhoto) {
         links += '<button type="button" class="mini-tag" style="cursor:pointer; color:var(--hydro-blue); font-weight:600; background:hsl(204, 80%, 94%); border-color:hsl(204, 70%, 76%);" onclick="openCaseEvidenceLightbox(\'' + rec.requestId + '\')">🖼️ เปิดดูภาพบนเว็บ</button>';
       } else {
         links += '<span class="mini-tag" style="color:var(--text-secondary); background:hsl(215, 20%, 96%); border-color:hsl(215, 16%, 86%);">📷 ไม่มีภาพแนบ</span>';
@@ -3125,8 +3137,8 @@
         return;
       }
 
-      const hasHousePhoto = !!(targetRecord.photoHouseUrl && targetRecord.photoHouseUrl.trim());
-      const hasWaterPhoto = !!(targetRecord.photoWaterUrl && targetRecord.photoWaterUrl.trim());
+      const hasHousePhoto = isValidPhotoEvidenceUrl(targetRecord.photoHouseUrl);
+      const hasWaterPhoto = isValidPhotoEvidenceUrl(targetRecord.photoWaterUrl);
 
       if (!hasHousePhoto && !hasWaterPhoto) {
         showBannerMessage('คำร้อง ' + targetRecord.requestId + ' (' + targetRecord.fullname + ') ไม่ได้แนบภาพถ่ายหลักฐานในระบบ', true);
@@ -3142,13 +3154,13 @@
         google.script.run
           .withSuccessHandler(function (galleryPack) {
             const slides = [];
-            if (galleryPack && galleryPack.houseImageSrc) {
+            if (galleryPack && isValidPhotoEvidenceUrl(galleryPack.houseImageSrc)) {
               slides.push({
                 label: '1. ภาพสภาพตัวบ้าน (' + targetRecord.requestId + ')',
                 src: galleryPack.houseImageSrc
               });
             }
-            if (galleryPack && galleryPack.waterImageSrc) {
+            if (galleryPack && isValidPhotoEvidenceUrl(galleryPack.waterImageSrc)) {
               slides.push({
                 label: '2. ภาพระดับน้ำท่วมขัง (' + targetRecord.requestId + ')',
                 src: galleryPack.waterImageSrc
