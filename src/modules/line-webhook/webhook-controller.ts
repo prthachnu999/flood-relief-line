@@ -65,13 +65,26 @@ export class LineWebhookController {
       const locationLatitude = singleEvent.message.latitude;
       const locationLongitude = singleEvent.message.longitude;
       const locationAddress = singleEvent.message.address || 'จุดพิกัดดาวเทียม';
+      const senderUserId = singleEvent.source?.userId || '';
 
-      await this.sendLineReply(replyToken, [
-        {
-          type: 'text',
-          text: `📍 ได้รับพิกัดขอความช่วยเหลือเรียบร้อยแล้ว!\n\n• ละติจูด: ${locationLatitude}\n• ลองจิจูด: ${locationLongitude}\n• บริเวณ: ${locationAddress}\n\nระบบได้ส่งต่อพิกัดนี้เข้าศูนย์กู้ภัย ปภ. ประจำพื้นที่เพื่อจัดสรรเรือและถุงยังชีพเข้าช่วยเหลือแล้วครับ`
-        }
-      ]);
+      const claimantName = await this.resolveLineProfileName(senderUserId);
+      const assignedRequestId = await this.dispatchEmergencySosToSheet({
+        claimantName,
+        lineUserId: senderUserId,
+        latitude: locationLatitude,
+        longitude: locationLongitude,
+        addressText: locationAddress
+      });
+
+      const confirmedFlex = FlexMessageBuilder.buildLocationConfirmedFlex({
+        requestId: assignedRequestId,
+        claimantName,
+        latitude: locationLatitude,
+        longitude: locationLongitude,
+        locationAddress
+      });
+
+      await this.sendLineReply(replyToken, [confirmedFlex]);
       return;
     }
 
@@ -154,6 +167,45 @@ export class LineWebhookController {
         text: `⚠️ ไม่พบข้อมูลคำร้องจาก "${queryKeyword}" ในระบบ\n\nโปรดตรวจสอบรหัสคำร้อง (เช่น REQ-2569-00002), เลขบัตรประชาชน 13 หลัก หรือเบอร์โทรศัพท์ที่ใช้ยื่นคำขออีกครั้งครับ\n\n🌐 หรือค้นหาผ่านหน้าเว็บได้ที่:\n${this.googleAppsScriptUrl}`
       }
     ]);
+  }
+
+  private async resolveLineProfileName(lineUserId?: string): Promise<string> {
+    if (!lineUserId || !this.channelAccessToken) {
+      return 'ผู้ประสบภัย (LINE)';
+    }
+    try {
+      const profileResponse = await fetch(`https://api.line.me/v2/bot/profile/${lineUserId}`, {
+        headers: { Authorization: `Bearer ${this.channelAccessToken}` }
+      });
+      if (profileResponse.ok) {
+        const profileBody = (await profileResponse.json()) as { displayName?: string };
+        if (profileBody.displayName) {
+          return profileBody.displayName;
+        }
+      }
+    } catch (_) {}
+    return 'ผู้ประสบภัย (LINE)';
+  }
+
+  private async dispatchEmergencySosToSheet(sosParams: {
+    claimantName: string;
+    lineUserId: string;
+    latitude: number;
+    longitude: number;
+    addressText: string;
+  }): Promise<string> {
+    const fallbackId = `REQ-SOS-${Date.now().toString().slice(-4)}`;
+    try {
+      const sosEndpoint = `${this.googleAppsScriptUrl}?action=sosEmergency&fullname=${encodeURIComponent(sosParams.claimantName)}&lineUserId=${encodeURIComponent(sosParams.lineUserId)}&lat=${encodeURIComponent(sosParams.latitude)}&lng=${encodeURIComponent(sosParams.longitude)}&address=${encodeURIComponent(sosParams.addressText)}`;
+      const sosResponse = await fetch(sosEndpoint, { redirect: 'follow' });
+      if (sosResponse.ok) {
+        const sosJson = (await sosResponse.json()) as { requestId?: string };
+        if (sosJson.requestId) {
+          return sosJson.requestId;
+        }
+      }
+    } catch (_) {}
+    return fallbackId;
   }
 
   private async sendLineReply(replyToken: string, messageCollection: any[]): Promise<void> {

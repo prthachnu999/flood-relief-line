@@ -869,7 +869,102 @@ function findRegistrationByKeyword(searchKeyword) {
   return matchedRecords;
 }
 
+function recordQuickEmergencySos(sosInput) {
+  const scriptLock = LockService.getScriptLock();
+  scriptLock.waitLock(10000);
+
+  try {
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const regSchema = TABLE_SCHEMAS.tbl_registrations;
+    let regSheet = spreadsheet.getSheetByName(regSchema.sheetName);
+    if (!regSheet) {
+      initializeFloodReliefDatabase();
+      regSheet = spreadsheet.getSheetByName(regSchema.sheetName);
+    }
+
+    const assignedRequestId = generateNextSequentialId(regSheet, 'REQ');
+    const createdTimestamp = formatThaiTimestamp();
+    const claimantName = String(sosInput.fullname || 'ผู้ประสบภัยฉุกเฉิน (LINE)').trim();
+    const contactPhone = sanitizeNumericDigits(sosInput.phoneNumber || '');
+    const gpsLatitude = String(sosInput.gpsLat || '').trim();
+    const gpsLongitude = String(sosInput.gpsLng || '').trim();
+    const locationAddress = String(sosInput.address || '').trim();
+
+    let subdistrictName = '';
+    let districtName = '';
+    let provinceName = 'กระบี่';
+    const subMatch = locationAddress.match(/(?:ตำบล|ต\.)\s*([^\s,]+)/);
+    if (subMatch) subdistrictName = subMatch[1];
+    const distMatch = locationAddress.match(/(?:อำเภอ|อ\.)\s*([^\s,]+)/);
+    if (distMatch) districtName = distMatch[1];
+    const provMatch = locationAddress.match(/(?:จังหวัด|จ\.)\s*([^\s,]+)/);
+    if (provMatch) provinceName = provMatch[1];
+
+    const emergencyRow = [
+      assignedRequestId,
+      createdTimestamp,
+      'SOS-' + String(Date.now()).slice(-6),
+      claimantName,
+      contactPhone || 'แจ้งผ่าน LINE พิกัดฉุกเฉิน',
+      locationAddress || 'พิกัดกู้ภัยฉุกเฉิน',
+      '-',
+      subdistrictName || 'อ่าวนาง',
+      districtName || 'เมืองกระบี่',
+      provinceName || 'กระบี่',
+      contactPhone || '-',
+      150,
+      'ไม่ใช่',
+      0,
+      0,
+      'ถูกตัดขาด',
+      gpsLatitude,
+      gpsLongitude,
+      '-',
+      '-',
+      '-',
+      100,
+      PRIORITY_TIERS_TH.RED,
+      CLAIM_STATUS_TH.PENDING
+    ];
+
+    regSheet.appendRow(emergencyRow);
+    const lastRowIndex = regSheet.getLastRow();
+    applyRowFormatting(regSheet, lastRowIndex, PRIORITY_TIERS_TH.RED);
+
+    recordAuditLog(
+      assignedRequestId,
+      'แจ้งเหตุกู้ภัยฉุกเฉินผ่านพิกัด LINE',
+      claimantName,
+      'บันทึกพิกัด GPS อัตโนมัติ: ' + gpsLatitude + ', ' + gpsLongitude
+    );
+
+    return {
+      statusCode: 200,
+      requestId: assignedRequestId,
+      priorityTier: PRIORITY_TIERS_TH.RED,
+      fullname: claimantName,
+      lat: gpsLatitude,
+      lng: gpsLongitude
+    };
+  } finally {
+    scriptLock.releaseLock();
+  }
+}
+
 function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'sosEmergency') {
+    const sosOutcome = recordQuickEmergencySos({
+      fullname: e.parameter.fullname || '',
+      phoneNumber: e.parameter.phoneNumber || '',
+      lineUserId: e.parameter.lineUserId || '',
+      gpsLat: e.parameter.lat || '',
+      gpsLng: e.parameter.lng || '',
+      address: e.parameter.address || ''
+    });
+    return ContentService.createTextOutput(JSON.stringify(sosOutcome))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   if (e && e.parameter && (e.parameter.action === 'search' || e.parameter.keyword || e.parameter.query)) {
     const searchKeyword = String(e.parameter.keyword || e.parameter.query || '').trim();
     const matchedRecords = findRegistrationByKeyword(searchKeyword);

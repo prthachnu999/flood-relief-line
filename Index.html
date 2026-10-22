@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     :root {
       --bg-page: hsl(210, 33%, 96%);
@@ -2229,6 +2230,14 @@
         photoWaterMime: waterPhoto.mimeType
       };
 
+      try {
+        localStorage.setItem('floodRelief_citizenId', citizenIdValue);
+        localStorage.setItem('floodRelief_phoneNumber', document.getElementById('phoneNumber').value);
+        localStorage.setItem('floodRelief_promptpayNumber', document.getElementById('promptpayNumber').value);
+        localStorage.setItem('floodRelief_houseNo', document.getElementById('houseNo').value);
+        localStorage.setItem('floodRelief_subdistrict', document.getElementById('subdistrict').value);
+      } catch (_) {}
+
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler(function (createdOutcome) {
@@ -3370,9 +3379,54 @@
       }
     });
 
+    async function initIndexLiffIntegration() {
+      try {
+        const cachedCitizenId = localStorage.getItem('floodRelief_citizenId');
+        const cachedPhone = localStorage.getItem('floodRelief_phoneNumber');
+        const cachedPromptpay = localStorage.getItem('floodRelief_promptpayNumber');
+        const cachedHouseNo = localStorage.getItem('floodRelief_houseNo');
+        const cachedSubdistrict = localStorage.getItem('floodRelief_subdistrict');
+        if (cachedCitizenId && !document.getElementById('citizenId').value) {
+          document.getElementById('citizenId').value = cachedCitizenId;
+          checkNationalIdLive(cachedCitizenId);
+        }
+        if (cachedPhone && !document.getElementById('phoneNumber').value) {
+          document.getElementById('phoneNumber').value = cachedPhone;
+        }
+        if (cachedPromptpay && !document.getElementById('promptpayNumber').value) {
+          document.getElementById('promptpayNumber').value = cachedPromptpay;
+        }
+        if (cachedHouseNo && !document.getElementById('houseNo').value) {
+          document.getElementById('houseNo').value = cachedHouseNo;
+        }
+        if (cachedSubdistrict && !document.getElementById('subdistrict').value) {
+          document.getElementById('subdistrict').value = cachedSubdistrict;
+        }
+      } catch (_) {}
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('mode') === 'emergency' || urlParams.get('emergency') === '1') {
+        captureCurrentGps();
+      }
+
+      if (typeof liff !== 'undefined') {
+        try {
+          await liff.init({ liffId: '2012152546-GBk9OvJ0' }).catch(function () {});
+          if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            const fullnameEl = document.getElementById('fullname');
+            if (fullnameEl && !fullnameEl.value && profile.displayName) {
+              fullnameEl.value = profile.displayName;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
     recalculateLiveTriage();
     restorePersistedPortalState();
     setupLightboxInteractions();
+    initIndexLiffIntegration();
   </script>
 </body>
 </html>

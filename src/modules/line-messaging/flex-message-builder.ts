@@ -419,4 +419,163 @@ export class FlexMessageBuilder {
       }
     };
   }
+
+  public static buildLocationConfirmedFlex(params: {
+    requestId: string;
+    claimantName: string;
+    latitude: number | string;
+    longitude: number | string;
+    locationAddress: string;
+  }) {
+    const mapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(`${params.latitude},${params.longitude}`)}`;
+
+    return {
+      type: 'flex',
+      altText: `🚨 ได้รับพิกัดขอความช่วยเหลือแล้ว [${params.requestId}]`,
+      contents: {
+        type: 'bubble',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          backgroundColor: '#DC2626',
+          paddingAll: '16px',
+          contents: [
+            {
+              type: 'text',
+              text: '🚨 ศูนย์รับแจ้งเหตุกู้ภัย ปภ. 24 ชม.',
+              color: '#FEE2E2',
+              size: 'xs',
+              weight: 'bold'
+            },
+            {
+              type: 'text',
+              text: 'บันทึกพิกัดฉุกเฉินสำเร็จ',
+              color: '#FFFFFF',
+              size: 'lg',
+              weight: 'bold',
+              margin: 'xs'
+            }
+          ]
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          spacing: 'md',
+          paddingAll: '18px',
+          contents: [
+            {
+              type: 'box',
+              layout: 'horizontal',
+              contents: [
+                {
+                  type: 'text',
+                  text: 'รหัสคำร้อง:',
+                  size: 'xs',
+                  color: '#64748B',
+                  flex: 3
+                },
+                {
+                  type: 'text',
+                  text: params.requestId,
+                  size: 'xs',
+                  weight: 'bold',
+                  color: '#0F172A',
+                  flex: 5
+                }
+              ]
+            },
+            {
+              type: 'box',
+              layout: 'horizontal',
+              contents: [
+                {
+                  type: 'text',
+                  text: 'ผู้แจ้งเหตุ:',
+                  size: 'xs',
+                  color: '#64748B',
+                  flex: 3
+                },
+                {
+                  type: 'text',
+                  text: params.claimantName,
+                  size: 'xs',
+                  weight: 'bold',
+                  color: '#0F172A',
+                  flex: 5
+                }
+              ]
+            },
+            {
+              type: 'box',
+              layout: 'horizontal',
+              contents: [
+                {
+                  type: 'text',
+                  text: 'พิกัด GPS:',
+                  size: 'xs',
+                  color: '#64748B',
+                  flex: 3
+                },
+                {
+                  type: 'text',
+                  text: `${params.latitude}, ${params.longitude}`,
+                  size: 'xs',
+                  weight: 'bold',
+                  color: '#2563EB',
+                  flex: 5
+                }
+              ]
+            },
+            {
+              type: 'box',
+              layout: 'vertical',
+              backgroundColor: '#FEF2F2',
+              cornerRadius: '8px',
+              paddingAll: '10px',
+              contents: [
+                {
+                  type: 'text',
+                  text: `📍 ${params.locationAddress}`,
+                  wrap: true,
+                  size: 'xs',
+                  color: '#991B1B'
+                },
+                {
+                  type: 'text',
+                  text: '🔴 ระดับความเร่งด่วน: วิกฤตเร่งด่วน (ส่งทีมกู้ภัย ปภ. ประจำพื้นที่แล้ว)',
+                  wrap: true,
+                  size: 'xxs',
+                  weight: 'bold',
+                  color: '#DC2626',
+                  margin: 'xs'
+                }
+              ]
+            },
+            {
+              type: 'button',
+              style: 'primary',
+              color: '#2563EB',
+              height: 'md',
+              action: {
+                type: 'uri',
+                label: '🗺️ เปิดดูหมุดพิกัดบน Google Maps',
+                uri: mapsUrl
+              }
+            },
+            {
+              type: 'button',
+              style: 'secondary',
+              color: '#DC2626',
+              height: 'md',
+              action: {
+                type: 'uri',
+                label: '📞 กดโทรสายด่วนนิรภัย 1784 ทันที',
+                uri: 'tel:1784'
+              }
+            }
+          ]
+        }
+      }
+    };
+  }
 }
