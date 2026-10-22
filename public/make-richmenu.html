@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>สร้างรูปภาพ LINE Rich Menu (1200x810)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Prompt', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      text-align: center;
+    }
+    .download-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+      margin-bottom: 25px;
+      transition: all 0.2s;
+    }
+    .download-btn:hover {
+      background: #059669;
+      transform: translateY(-2px);
+    }
+    canvas {
+      width: 100%;
+      max-width: 650px;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      border: 2px solid #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>ตัวสร้างภาพ LINE Rich Menu ขนาดตรงเป๊ะ (1200 × 810 px)</h2>
+    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">
+      คลิกปุ่มด้านล่างเพื่อบันทึกไฟล์ภาพเข้าเครื่อง แล้วนำไปอัปโหลดใน LINE ได้ทันที
+    </p>
+
+    <button id="downloadBtn" class="download-btn" onclick="downloadImage()">
+      📥 คลิกเพื่อดาวน์โหลดภาพ Rich Menu (1200x810)
+    </button>
+    <br>
+
+    <canvas id="menuCanvas" width="1200" height="810"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('menuCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function renderMenu() {
+      const w = 1200;
+      const h = 810;
+      const halfW = w / 2;
+      const halfH = h / 2;
+
+      // Box 1 (Top-Left): Royal Blue - ยื่นขอเงินเยียวยา
+      drawQuadrant(0, 0, halfW, halfH, '#1D4ED8', '#1E40AF', '💰', 'ยื่นขอเงินเยียวยา', 'ขอเงินชดเชย 5,000-9,000 บ.');
+
+      // Box 2 (Top-Right): Sky Blue - ตรวจสอบสถานะ
+      drawQuadrant(halfW, 0, halfW, halfH, '#0284C7', '#0369A1', '🔍', 'ตรวจสอบสถานะ', 'ติดตามผลการโอนเงิน');
+
+      // Box 3 (Bottom-Left): Crimson Red - ขอความช่วยเหลือด่วน / กู้ภัย
+      drawQuadrant(0, halfH, halfW, halfH, '#DC2626', '#991B1B', '🚨', 'ขอความช่วยเหลือด่วน', 'แจ้งกู้ภัย / ขอเรือ / ถุงยังชีพ');
+
+      // Box 4 (Bottom-Right): Orange Red - สายด่วน ปภ. 1784
+      drawQuadrant(halfW, halfH, halfW, halfH, '#EA580C', '#C2410C', '📞', 'สายด่วน ปภ. 1784', 'โทรแจ้งเหตุด่วน 24 ชม.');
+
+      // Divider lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(halfW, 0);
+      ctx.lineTo(halfW, h);
+      ctx.moveTo(0, halfH);
+      ctx.lineTo(w, halfH);
+      ctx.stroke();
+    }
+
+    function drawQuadrant(x, y, qw, qh, color1, color2, icon, title, subtitle) {
+      // Gradient background
+      const grad = ctx.createLinearGradient(x, y, x, y + qh);
+      grad.addColorStop(0, color1);
+      grad.addColorStop(1, color2);
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, y, qw, qh);
+
+      // Icon
+      ctx.font = '72px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(icon, x + qw / 2, y + qh / 2 - 45);
+
+      // Title
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 42px "Prompt", sans-serif';
+      ctx.fillText(title, x + qw / 2, y + qh / 2 + 35);
+
+      // Subtitle
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = '24px "Prompt", sans-serif';
+      ctx.fillText(subtitle, x + qw / 2, y + qh / 2 + 80);
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'richmenu_1200x810.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Wait for fonts to load
+    document.fonts.ready.then(() => {
+      renderMenu();
+    });
+  </script>
+</body>
+</html>

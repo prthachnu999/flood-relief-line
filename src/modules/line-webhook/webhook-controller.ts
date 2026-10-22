@@ -74,6 +74,27 @@ export class LineWebhookController {
           text: 'กรุณาพิมพ์รหัสคำร้องของคุณ (เช่น FL-XXXX) หรือเปิดเมนู "ตรวจสอบสถานะคำร้อง" จาก Rich Menu'
         }
       ]);
+      return;
+    }
+
+    if (userMessageText.includes('ช่วยเหลือ') || userMessageText.includes('กู้ภัย')) {
+      await this.sendLineReply(replyToken, [
+        {
+          type: 'text',
+          text: '🚨 ศูนย์รับแจ้งเหตุน้ำท่วมฉุกเฉิน\nกรุณากดเครื่องหมาย [+] มุมล่างซ้ายของ LINE แล้วเลือก "ตำแหน่งที่ตั้ง" (Location) เพื่อส่งพิกัดบ้านที่ติดค้างให้ทีมกู้ภัย ปภ. เข้าช่วยเหลือทันที'
+        }
+      ]);
+      return;
+    }
+
+    if (userMessageText.includes('1784') || userMessageText.includes('สายด่วน')) {
+      await this.sendLineReply(replyToken, [
+        {
+          type: 'text',
+          text: '📞 สายด่วน ปภ. 1784 (โทรฟรีตลอด 24 ชั่วโมง)\nศูนย์เตือนภัยพิบัติแห่งชาติ กรมป้องกันและบรรเทาสาธารณภัย'
+        }
+      ]);
+      return;
     }
   }
 
